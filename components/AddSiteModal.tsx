@@ -83,13 +83,15 @@ export default function AddSiteModal({ isOpen, onClose, onAdded, initialSite }: 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium">Client Name</label>
-              <input required type="text" className="mt-1 block w-full border rounded p-2" 
-                value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
+              <input required type="text" className={`mt-1 block w-full border rounded p-2 ${initialSite ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`} 
+                value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} 
+                disabled={!!initialSite} />
             </div>
             <div>
               <label className="block text-sm font-medium">Source URL</label>
-              <input required type="url" className="mt-1 block w-full border rounded p-2" 
-                value={formData.sourceUrl} onChange={e => setFormData({...formData, sourceUrl: e.target.value})} />
+              <input required type="url" className={`mt-1 block w-full border rounded p-2 ${initialSite ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`} 
+                value={formData.sourceUrl} onChange={e => setFormData({...formData, sourceUrl: e.target.value})} 
+                disabled={!!initialSite} />
             </div>
           </div>
           
