@@ -23,13 +23,13 @@ export async function runScraper(replicationId: string, url: string, config: any
     // back to the original domain, ensuring perfect visual fidelity
     let html = await page.content();
     
-    // Inject <base> tag
+    // Inject <base> tag using regex to handle attributes on <head>
     const baseUrl = new URL(url).origin;
-    html = html.replace('<head>', `<head><base href="${baseUrl}/">`);
+    html = html.replace(/<head[^>]*>/i, (match) => `${match}<base href="${baseUrl}/">`);
 
     // Inject our search interceptor
     const interceptor = getInterceptorScript(config);
-    html = html.replace('</body>', `${interceptor}</body>`);
+    html = html.replace(/<\/body>/i, `${interceptor}</body>`);
 
     // Save to disk
     fs.writeFileSync(path.join(outputDir, 'index.html'), html);
