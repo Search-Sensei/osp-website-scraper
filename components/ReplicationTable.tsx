@@ -11,9 +11,9 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`px-2 py-1 rounded text-xs font-medium \${color}`}>{status}</span>;
 }
 
-export default function ReplicationTable({ sites, onDelete, onEdit }: { sites: any[], onDelete: (id: string) => void, onEdit: (site: any) => void }) {
+export default function ReplicationTable({ sites }: { sites: any[] }) {
   if (sites.length === 0) {
-    return <div className="text-center p-8 border rounded bg-gray-50 text-gray-500">No sites added yet.</div>;
+    return <div className="text-center p-8 border rounded bg-gray-50 text-gray-500">No sites added yet. Use the CLI to scrape a site.</div>;
   }
 
   return (
@@ -43,16 +43,6 @@ export default function ReplicationTable({ sites, onDelete, onEdit }: { sites: a
                     View
                   </a>
                 )}
-                <button 
-                  onClick={() => onEdit(site)}
-                  className="font-medium text-blue-600 hover:underline">
-                  Edit
-                </button>
-                <button 
-                  onClick={() => onDelete(site.id)}
-                  className="font-medium text-red-600 hover:underline">
-                  Delete
-                </button>
               </td>
             </tr>
           ))}

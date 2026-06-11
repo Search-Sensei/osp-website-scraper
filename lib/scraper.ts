@@ -1,17 +1,14 @@
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
-import { query } from './db';
 import { getInterceptorScript } from './search-interceptor';
 
-export async function runScraper(replicationId: string, url: string, config: any) {
+export async function runScraper(replicationId: string, url: string, config: any): Promise<string> {
+  const browser = await chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  
   try {
-    await query("UPDATE site_replications SET status = 'COPYING' WHERE id = $1", [replicationId]);
-    
-    const browser = await chromium.launch();
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    
     // Create local directory
     const outputDir = path.join(process.cwd(), 'public', 'sites', replicationId);
     fs.mkdirSync(outputDir, { recursive: true });
@@ -19,11 +16,10 @@ export async function runScraper(replicationId: string, url: string, config: any
     // Download page
     await page.goto(url, { waitUntil: 'networkidle' });
     
-    // Save rendered HTML and inject a <base> tag to resolve relative assets 
-    // back to the original domain, ensuring perfect visual fidelity
+    // Save rendered HTML
     let html = await page.content();
     
-    // Inject <base> tag and force white background to prevent dark mode issues
+    // Inject <base> tag and force white background
     const baseUrl = new URL(url).origin;
     html = html.replace(/<head[^>]*>/i, (match) => `${match}<base href="${baseUrl}/"><style>body { background-color: #ffffff !important; }</style>`);
 
@@ -32,15 +28,11 @@ export async function runScraper(replicationId: string, url: string, config: any
     html = html.replace(/<\/body>/i, `${interceptor}</body>`);
 
     // Save to disk
-    fs.writeFileSync(path.join(outputDir, 'index.html'), html);
+    const outPath = path.join(outputDir, 'index.html');
+    fs.writeFileSync(outPath, html);
     
+    return `/sites/${replicationId}/index.html`;
+  } finally {
     await browser.close();
-
-    await query("UPDATE site_replications SET status = 'COMPLETED', cloned_path = $1 WHERE id = $2", 
-      [`/sites/${replicationId}/index.html`, replicationId]);
-
-  } catch (error: any) {
-    await query("UPDATE site_replications SET status = 'FAILED', error_message = $1 WHERE id = $2", 
-      [error.message, replicationId]);
   }
 }

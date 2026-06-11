@@ -1,0 +1,21 @@
+[
+  {
+    "id": "1949fa16-2ffa-463d-92eb-2c34c3bc0149",
+    "client_name": "HN",
+    "source_url": "https://news.ycombinator.com",
+    "status": "COMPLETED",
+    "cloned_path": "/sites/1949fa16-2ffa-463d-92eb-2c34c3bc0149/index.html",
+    "created_at": "2026-06-11T16:02:40.771Z",
+    "config": {
+      "apiUrl": "http://localhost:8080/api/v1/search",
+      "inputSelector": "input[name='q']",
+      "resultsSelector": ".itemlist",
+      "mapping": {
+        "resultsPath": "data.results",
+        "titleField": "title",
+        "snippetField": "excerpt",
+        "urlField": "url"
+      }
+    }
+  }
+]
