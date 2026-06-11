@@ -1,7 +1,7 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function AddSiteModal({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: () => void, onAdded: () => void }) {
+export default function AddSiteModal({ isOpen, onClose, onAdded, initialSite }: { isOpen: boolean, onClose: () => void, onAdded: () => void, initialSite?: any }) {
   const [formData, setFormData] = useState({
     clientName: '',
     sourceUrl: '',
@@ -17,6 +17,35 @@ export default function AddSiteModal({ isOpen, onClose, onAdded }: { isOpen: boo
     }, null, 2)
   });
 
+  useEffect(() => {
+    if (initialSite && isOpen) {
+      setFormData({
+        clientName: initialSite.client_name || '',
+        sourceUrl: initialSite.source_url || '',
+        searchApiUrl: initialSite.search_api_url || '',
+        searchInputSelector: initialSite.search_input_selector || '',
+        searchButtonSelector: initialSite.search_button_selector || '',
+        resultsContainerSelector: initialSite.results_container_selector || '',
+        responseMapping: JSON.stringify(initialSite.response_mapping, null, 2)
+      });
+    } else if (isOpen && !initialSite) {
+      setFormData({
+        clientName: '',
+        sourceUrl: '',
+        searchApiUrl: '',
+        searchInputSelector: '',
+        searchButtonSelector: '',
+        resultsContainerSelector: '',
+        responseMapping: JSON.stringify({
+          resultsPath: "data.results",
+          titleField: "title",
+          snippetField: "excerpt",
+          urlField: "url"
+        }, null, 2)
+      });
+    }
+  }, [initialSite, isOpen]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,8 +56,11 @@ export default function AddSiteModal({ isOpen, onClose, onAdded }: { isOpen: boo
         responseMapping: JSON.parse(formData.responseMapping)
       };
       
-      const res = await fetch('/api/replications', {
-        method: 'POST',
+      const method = initialSite ? 'PUT' : 'POST';
+      const url = initialSite ? `/api/replications/${initialSite.id}` : '/api/replications';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
@@ -45,7 +77,7 @@ export default function AddSiteModal({ isOpen, onClose, onAdded }: { isOpen: boo
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Add New Site Replication</h2>
+        <h2 className="text-xl font-bold mb-4">{initialSite ? 'Edit Site Replication' : 'Add New Site Replication'}</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

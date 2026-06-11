@@ -23,9 +23,9 @@ export async function runScraper(replicationId: string, url: string, config: any
     // back to the original domain, ensuring perfect visual fidelity
     let html = await page.content();
     
-    // Inject <base> tag using regex to handle attributes on <head>
+    // Inject <base> tag and force white background to prevent dark mode issues
     const baseUrl = new URL(url).origin;
-    html = html.replace(/<head[^>]*>/i, (match) => `${match}<base href="${baseUrl}/">`);
+    html = html.replace(/<head[^>]*>/i, (match) => `${match}<base href="${baseUrl}/"><style>body { background-color: #ffffff !important; }</style>`);
 
     // Inject our search interceptor
     const interceptor = getInterceptorScript(config);

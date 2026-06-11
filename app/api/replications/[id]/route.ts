@@ -24,3 +24,33 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   return NextResponse.json({ success: true });
 }
+
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const body = await req.json();
+  const { 
+    clientName, sourceUrl, searchApiUrl, searchInputSelector, 
+    searchButtonSelector, resultsContainerSelector, responseMapping 
+  } = body;
+
+  await query(
+    `UPDATE site_replications 
+     SET client_name = $1, source_url = $2, search_api_url = $3, 
+         search_input_selector = $4, search_button_selector = $5, 
+         results_container_selector = $6, response_mapping = $7
+     WHERE id = $8`,
+    [clientName, sourceUrl, searchApiUrl, searchInputSelector, searchButtonSelector, resultsContainerSelector, responseMapping, id]
+  );
+
+  // Trigger scraper asynchronously to rebuild the site with new config
+  const { runScraper } = require('@/lib/scraper');
+  runScraper(id, sourceUrl, {
+    apiUrl: searchApiUrl,
+    inputSelector: searchInputSelector,
+    buttonSelector: searchButtonSelector,
+    resultsSelector: resultsContainerSelector,
+    mapping: responseMapping
+  });
+
+  return NextResponse.json({ success: true });
+}
