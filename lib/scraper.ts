@@ -25,11 +25,11 @@ export async function runScraper(replicationId: string, url: string, config: any
     
     // Inject <base> tag
     const baseUrl = new URL(url).origin;
-    html = html.replace('<head>', \`<head><base href="\${baseUrl}/">\`);
+    html = html.replace('<head>', `<head><base href="${baseUrl}/">`);
 
     // Inject our search interceptor
     const interceptor = getInterceptorScript(config);
-    html = html.replace('</body>', \`\${interceptor}</body>\`);
+    html = html.replace('</body>', `${interceptor}</body>`);
 
     // Save to disk
     fs.writeFileSync(path.join(outputDir, 'index.html'), html);
@@ -37,7 +37,7 @@ export async function runScraper(replicationId: string, url: string, config: any
     await browser.close();
 
     await query("UPDATE site_replications SET status = 'COMPLETED', cloned_path = $1 WHERE id = $2", 
-      [\`/sites/\${replicationId}/index.html\`, replicationId]);
+      [`/sites/${replicationId}/index.html`, replicationId]);
 
   } catch (error: any) {
     await query("UPDATE site_replications SET status = 'FAILED', error_message = $1 WHERE id = $2", 

@@ -21,7 +21,7 @@ export default function Dashboard() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this replication?')) return;
-    await fetch(`/api/replications/\${id}`, { method: 'DELETE' });
+    await fetch(`/api/replications/${id}`, { method: 'DELETE' });
     fetchSites();
   };
 
