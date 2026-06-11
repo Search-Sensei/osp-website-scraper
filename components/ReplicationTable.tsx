@@ -24,6 +24,7 @@ export default function ReplicationTable({ sites, onDelete }: { sites: any[], on
             <th className="px-6 py-3">Client Name</th>
             <th className="px-6 py-3">Source URL</th>
             <th className="px-6 py-3">Status</th>
+            <th className="px-6 py-3">Created At</th>
             <th className="px-6 py-3">Actions</th>
           </tr>
         </thead>
@@ -33,6 +34,9 @@ export default function ReplicationTable({ sites, onDelete }: { sites: any[], on
               <td className="px-6 py-4 font-medium text-gray-900">{site.client_name}</td>
               <td className="px-6 py-4 truncate max-w-[200px]" title={site.source_url}>{site.source_url}</td>
               <td className="px-6 py-4"><StatusBadge status={site.status} /></td>
+              <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                {new Date(site.created_at).toLocaleString()}
+              </td>
               <td className="px-6 py-4 space-x-3">
                 {site.status === 'COMPLETED' && (
                   <a href={site.cloned_path} target="_blank" className="font-medium text-blue-600 hover:underline">

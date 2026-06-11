@@ -18,7 +18,7 @@ export default async function ClonedSiteViewer({ params }: { params: Promise<{ i
       <div className="flex-1 w-full bg-gray-100">
         <iframe 
           src={`/sites/${id}/index.html`} 
-          className="w-full h-full border-none"
+          className="w-full h-full border-none bg-white"
           title="Cloned Site"
         />
       </div>
