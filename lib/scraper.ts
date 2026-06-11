@@ -14,7 +14,7 @@ export async function runScraper(replicationId: string, url: string, config: any
     fs.mkdirSync(outputDir, { recursive: true });
 
     // Download page
-    await page.goto(url, { waitUntil: 'networkidle' });
+    await page.goto(url, { waitUntil: 'load' });
     
     // Save rendered HTML
     let html = await page.content();
