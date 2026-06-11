@@ -23,7 +23,7 @@ program
   }))
   .action(async (options) => {
     try {
-      const replicationId = crypto.randomUUID();
+      const replicationId = options.name.toLowerCase().replace(/[\s\W]+/g, '_');
       console.log(`Starting replication for: ${options.name} (${options.url})`);
       
       const config = {
@@ -52,7 +52,12 @@ program
         sites = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
       }
       
-      sites.push(siteEntry);
+      const existingIndex = sites.findIndex((s: any) => s.id === replicationId);
+      if (existingIndex >= 0) {
+        sites[existingIndex] = siteEntry;
+      } else {
+        sites.push(siteEntry);
+      }
       fs.writeFileSync(dbPath, JSON.stringify(sites, null, 2));
 
       console.log(`\nSuccessfully cloned to: ${clonedPath}`);
