@@ -11,6 +11,7 @@ export function getInterceptorScript(config: {
       const CONFIG = ${JSON.stringify(config)};
       
       function getNestedValue(obj, path) {
+        if (!path) return obj;
         return path.split('.').reduce((o, k) => o?.[k], obj);
       }
 
