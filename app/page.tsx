@@ -1,16 +1,17 @@
-import fs from 'fs';
-import path from 'path';
+import { query } from '@/lib/db';
 import ReplicationTable from '@/components/ReplicationTable';
 
-export default async function Dashboard() {
-  const dbPath = path.join(process.cwd(), 'data', 'sites.json');
-  let sites = [];
-  if (fs.existsSync(dbPath)) {
-    sites = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
-  }
+export const dynamic = 'force-dynamic';
 
-  // Sort by created_at descending
-  sites.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+export default async function Dashboard() {
+  let sites = [];
+  try {
+    const res = await query('SELECT * FROM site_replications ORDER BY created_at DESC');
+    sites = res.rows;
+  } catch (e) {
+    console.error("Failed to fetch sites from DB:", e);
+    // Return empty array if DB is not available yet
+  }
 
   return (
     <div className="p-8 max-w-6xl mx-auto font-sans">

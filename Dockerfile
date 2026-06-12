@@ -12,7 +12,7 @@ COPY . .
 RUN npm run build
 
 # --- Stage 3: Production runner ---
-FROM node:20-alpine AS runner
+FROM mcr.microsoft.com/playwright:v1.44.0-jammy AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
