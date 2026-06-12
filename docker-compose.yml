@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: website_scraper
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -22,6 +22,9 @@ services:
       - postgres
     ports:
       - "3002:3000"
+    volumes:
+      # Ensure cloned website assets are not lost during redeploys
+      - ./public/sites:/app/public/sites
     env_file:
       - .env
     environment:
@@ -30,6 +33,3 @@ services:
       GITHUB_REPO_NAME: osp-website-scraper
       # Connects directly to the compose postgres container
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/website_scraper
-
-volumes:
-  pgdata:
