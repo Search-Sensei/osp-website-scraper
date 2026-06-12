@@ -40,11 +40,12 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PAT: ${{ secrets.PAT }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: KeyCloakAdmin
           key: ${{ secrets.VM_SSH_KEY }}
-          envs: GHCR_TOKEN
+          envs: GHCR_TOKEN,GITHUB_PAT
           script: |
             IMAGE="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/osp-website-scraper:${{ github.sha }}"
 
@@ -66,6 +67,7 @@ jobs:
               --restart unless-stopped \
               -p 3002:3000 \
               --env-file .env \
+              -e GITHUB_PAT="$GITHUB_PAT" \
               -e GITHUB_REPO_OWNER="${{ github.repository_owner }}" \
               -e GITHUB_REPO_NAME="osp-website-scraper" \
               "$IMAGE"
