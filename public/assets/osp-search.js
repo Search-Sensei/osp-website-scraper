@@ -45,3 +45,20 @@ window.OSPSearch = {
 };
 
 console.log('OSP Search Javascript loaded. Use window.OSPSearch.search() to integrate.');
+
+// Block navigation to other pages but keep JS clicks (like menus) working
+document.addEventListener('click', function(e) {
+  const anchor = e.target.closest('a');
+  if (!anchor) return;
+  
+  const href = anchor.getAttribute('href');
+  
+  // Allow empty or hash links to work natively if needed by some scripts
+  if (!href || href.startsWith('#') || href.startsWith('javascript:')) {
+    return;
+  }
+  
+  // Prevent actual navigation to other pages
+  e.preventDefault();
+  console.log('Navigation blocked to prevent leaving the preview mode:', href);
+});
