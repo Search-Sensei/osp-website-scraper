@@ -40,13 +40,11 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_PAT: ${{ secrets.PAT }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: KeyCloakAdmin
           key: ${{ secrets.VM_SSH_KEY }}
-          envs: GHCR_TOKEN,GITHUB_PAT,DATABASE_URL
+          envs: GHCR_TOKEN
           script: |
             IMAGE="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/osp-website-scraper:${{ github.sha }}"
 
@@ -59,13 +57,15 @@ jobs:
             echo "==> Stopping existing container (if any)..."
             sudo docker rm -f osp-website-scraper 2>/dev/null || true
 
+            echo "==> Ensuring .env file exists..."
+            touch .env
+
             echo "==> Starting new container on port 3002..."
             sudo docker run -d \
               --name osp-website-scraper \
               --restart unless-stopped \
               -p 3002:3000 \
-              -e GITHUB_PAT="$GITHUB_PAT" \
-              -e DATABASE_URL="$DATABASE_URL" \
+              --env-file .env \
               -e GITHUB_REPO_OWNER="${{ github.repository_owner }}" \
               -e GITHUB_REPO_NAME="osp-website-scraper" \
               "$IMAGE"
