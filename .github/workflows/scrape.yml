@@ -1,103 +1,21 @@
-name: Scrape Website
+name: Build and Deploy Scraper
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      url:
-        description: 'Source URL to clone'
-        required: true
-        type: string
-      name:
-        description: 'Client or site name'
-        required: true
-        type: string
-      api:
-        description: 'Search API URL'
-        required: true
-        type: string
-      input_selector:
-        description: 'Search Input Selector (CSS)'
-        required: true
-        type: string
-      container_selector:
-        description: 'Results Container Selector (CSS)'
-        required: true
-        type: string
-      button_selector:
-        description: 'Search Button Selector (CSS, optional)'
-        required: false
-        type: string
-      mapping:
-        description: 'Response mapping JSON (optional)'
-        required: false
-        type: string
 
 permissions:
-  contents: write
+  contents: read
   packages: write
 
 jobs:
-  scrape:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Install Playwright Chromium
-        run: npx playwright install chromium --with-deps
-
-      - name: Run scraper
-        env:
-          SCRAPE_URL: ${{ inputs.url }}
-          SCRAPE_NAME: ${{ inputs.name }}
-          SCRAPE_API: ${{ inputs.api }}
-          SCRAPE_INPUT: ${{ inputs.input_selector }}
-          SCRAPE_CONTAINER: ${{ inputs.container_selector }}
-          SCRAPE_BUTTON: ${{ inputs.button_selector }}
-          SCRAPE_MAPPING: ${{ inputs.mapping }}
-        run: |
-          ARGS=(--url "$SCRAPE_URL" --name "$SCRAPE_NAME" --api "$SCRAPE_API" --input "$SCRAPE_INPUT" --container "$SCRAPE_CONTAINER")
-          
-          if [ -n "$SCRAPE_BUTTON" ]; then
-            ARGS+=(--button "$SCRAPE_BUTTON")
-          fi
-          
-          if [ -n "$SCRAPE_MAPPING" ]; then
-            ARGS+=(--mapping "$SCRAPE_MAPPING")
-          fi
-          
-          npm run scrape -- "${ARGS[@]}"
-
-      - name: Commit and push changes
-        env:
-          SCRAPE_NAME: ${{ inputs.name }}
-          SCRAPE_URL: ${{ inputs.url }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ public/sites/
-          git diff --cached --quiet || git commit -m "scrape: ${SCRAPE_NAME} from ${SCRAPE_URL}"
-          git push
-
-  # ── Build Docker Image & Deploy to Kong VM ──────────────────────────
-  build-and-deploy:
-    needs: scrape
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository (with latest scrape commit)
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 1
 
       - name: Set Image Name
         run: echo "IMAGE_NAME=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/osp-website-scraper" >> $GITHUB_ENV
@@ -122,11 +40,13 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PAT: ${{ secrets.PAT }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: KeyCloakAdmin
           key: ${{ secrets.VM_SSH_KEY }}
-          envs: GHCR_TOKEN
+          envs: GHCR_TOKEN,GITHUB_PAT,DATABASE_URL
           script: |
             IMAGE="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/osp-website-scraper:${{ github.sha }}"
 
@@ -144,9 +64,13 @@ jobs:
               --name osp-website-scraper \
               --restart unless-stopped \
               -p 3002:3000 \
+              -e GITHUB_PAT="$GITHUB_PAT" \
+              -e DATABASE_URL="$DATABASE_URL" \
+              -e GITHUB_REPO_OWNER="${{ github.repository_owner }}" \
+              -e GITHUB_REPO_NAME="osp-website-scraper" \
               "$IMAGE"
 
             echo "==> Waiting for healthcheck..."
-            timeout 30s bash -c 'until curl -sf http://localhost:3002; do echo "Waiting..."; sleep 3; done'
+            timeout 30s bash -c 'until curl -sf http://localhost:3002/scraper; do echo "Waiting..."; sleep 3; done'
             echo "==> osp-website-scraper deployed successfully!"
 
