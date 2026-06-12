@@ -1,52 +1,22 @@
 "use client";
 import { useState, useEffect } from 'react';
 
-export default function AddSiteModal({ isOpen, onClose, onAdded, initialSite }: { isOpen: boolean, onClose: () => void, onAdded: () => void, initialSite?: any }) {
+export default function AddSiteModal({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: () => void, onAdded: () => void }) {
   const [formData, setFormData] = useState({
     clientName: '',
-    sourceUrl: '',
-    searchApiUrl: '',
-    searchInputSelector: '',
-    searchButtonSelector: '',
-    resultsContainerSelector: '',
-    responseMapping: JSON.stringify({
-      resultsPath: "data.results",
-      titleField: "title",
-      snippetField: "excerpt",
-      urlField: "url"
-    }, null, 2)
+    sourceUrl: ''
   });
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (initialSite && isOpen) {
-      setFormData({
-        clientName: initialSite.client_name || '',
-        sourceUrl: initialSite.source_url || '',
-        searchApiUrl: initialSite.config?.apiUrl || '',
-        searchInputSelector: initialSite.config?.inputSelector || '',
-        searchButtonSelector: initialSite.config?.buttonSelector || '',
-        resultsContainerSelector: initialSite.config?.resultsSelector || '',
-        responseMapping: JSON.stringify(initialSite.config?.mapping || {}, null, 2)
-      });
-    } else if (isOpen && !initialSite) {
+    if (isOpen) {
       setFormData({
         clientName: '',
-        sourceUrl: '',
-        searchApiUrl: '',
-        searchInputSelector: '',
-        searchButtonSelector: '',
-        resultsContainerSelector: '',
-        responseMapping: JSON.stringify({
-          resultsPath: "data.results",
-          titleField: "title",
-          snippetField: "excerpt",
-          urlField: "url"
-        }, null, 2)
+        sourceUrl: ''
       });
     }
-  }, [initialSite, isOpen]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -56,19 +26,11 @@ export default function AddSiteModal({ isOpen, onClose, onAdded, initialSite }: 
     try {
       const payload = {
         client_name: formData.clientName,
-        url: formData.sourceUrl,
-        api: formData.searchApiUrl,
-        input_selector: formData.searchInputSelector,
-        button_selector: formData.searchButtonSelector,
-        container_selector: formData.resultsContainerSelector,
-        mapping: formData.responseMapping
+        url: formData.sourceUrl
       };
       
-      const method = 'POST';
-      const url = '/api/replications/clone';
-
-      const res = await fetch(url, {
-        method,
+      const res = await fetch('/api/replications/clone', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
@@ -81,7 +43,7 @@ export default function AddSiteModal({ isOpen, onClose, onAdded, initialSite }: 
         alert("Failed to submit form: " + (errData.error || "Unknown error"));
       }
     } catch (err) {
-      alert("Failed to submit form. Check JSON formatting.");
+      alert("Failed to submit form.");
     } finally {
       setLoading(false);
     }
@@ -89,62 +51,26 @@ export default function AddSiteModal({ isOpen, onClose, onAdded, initialSite }: 
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">{initialSite ? 'Edit Site Replication' : 'Add New Site Replication'}</h2>
+      <div className="bg-white rounded-lg max-w-lg w-full p-6">
+        <h2 className="text-xl font-bold mb-4">Add New Site Replication</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium">Client Name</label>
-              <input required type="text" className={`mt-1 block w-full border rounded p-2 ${initialSite ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`} 
-                value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} 
-                disabled={!!initialSite} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Source URL</label>
-              <input required type="url" className={`mt-1 block w-full border rounded p-2 ${initialSite ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`} 
-                value={formData.sourceUrl} onChange={e => setFormData({...formData, sourceUrl: e.target.value})} 
-                disabled={!!initialSite} />
-            </div>
-          </div>
-          
           <div>
-            <label className="block text-sm font-medium">Search API URL</label>
-            <input required type="url" className="mt-1 block w-full border rounded p-2" 
-              value={formData.searchApiUrl} onChange={e => setFormData({...formData, searchApiUrl: e.target.value})} />
+            <label className="block text-sm font-medium text-gray-700">Client Name</label>
+            <input required type="text" placeholder="e.g. Community Savings Bank" className="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500" 
+              value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
           </div>
-
-          <hr className="my-4" />
-          <h3 className="font-semibold text-gray-700">Selectors & Mapping</h3>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium">Search Input Selector</label>
-              <input required type="text" placeholder="input[name='q']" className="mt-1 block w-full border rounded p-2" 
-                value={formData.searchInputSelector} onChange={e => setFormData({...formData, searchInputSelector: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Search Button Selector (optional)</label>
-              <input type="text" placeholder="button.search" className="mt-1 block w-full border rounded p-2" 
-                value={formData.searchButtonSelector} onChange={e => setFormData({...formData, searchButtonSelector: e.target.value})} />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium">Results Container Selector</label>
-              <input required type="text" placeholder="#search-results" className="mt-1 block w-full border rounded p-2" 
-                value={formData.resultsContainerSelector} onChange={e => setFormData({...formData, resultsContainerSelector: e.target.value})} />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium">Response Mapping (JSON)</label>
-              <textarea required rows={6} className="mt-1 block w-full border rounded p-2 font-mono text-sm" 
-                value={formData.responseMapping} onChange={e => setFormData({...formData, responseMapping: e.target.value})} />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Source URL</label>
+            <input required type="url" placeholder="https://www.example.com/search" className="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500" 
+              value={formData.sourceUrl} onChange={e => setFormData({...formData, sourceUrl: e.target.value})} />
           </div>
 
           <div className="flex justify-end gap-2 pt-4 border-t mt-6">
-            <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 border rounded">Cancel</button>
-            <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded flex items-center gap-2">
+            <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 border rounded hover:bg-gray-50 text-gray-700">Cancel</button>
+            <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50">
               {loading && <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>}
-              {loading ? 'Scraping...' : 'Start Replication'}
+              {loading ? 'Scraping...' : 'Clone Site'}
             </button>
           </div>
         </form>

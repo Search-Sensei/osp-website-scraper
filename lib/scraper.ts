@@ -1,41 +1,34 @@
-import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
-import { getInterceptorScript } from './search-interceptor';
 
-export async function runScraper(replicationId: string, url: string, config: any): Promise<string> {
-  const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
+export async function runScraper(replicationId: string, url: string): Promise<string> {
+  // @ts-ignore
+  const scrape = (await import('website-scraper')).default;
+  const outputDir = path.join(process.cwd(), 'public', 'sites', replicationId);
   
-  try {
-    // Remove old copy if it exists, then create fresh directory
-    const outputDir = path.join(process.cwd(), 'public', 'sites', replicationId);
-    if (fs.existsSync(outputDir)) {
-      fs.rmSync(outputDir, { recursive: true, force: true });
-    }
-    fs.mkdirSync(outputDir, { recursive: true });
-
-    // Download page
-    await page.goto(url, { waitUntil: 'load' });
-    
-    // Save rendered HTML
-    let html = await page.content();
-    
-    // Inject <base> tag and force white background
-    const baseUrl = new URL(url).origin;
-    html = html.replace(/<head[^>]*>/i, (match) => `${match}<base href="${baseUrl}/"><style>body { background-color: #ffffff !important; }</style>`);
-
-    // Inject our search interceptor
-    const interceptor = getInterceptorScript(config);
-    html = html.replace(/<\/body>/i, `${interceptor}</body>`);
-
-    // Save to disk
-    const outPath = path.join(outputDir, 'index.html');
-    fs.writeFileSync(outPath, html);
-    
-    return `/sites/${replicationId}/index.html`;
-  } finally {
-    await browser.close();
+  // Remove old copy if it exists
+  if (fs.existsSync(outputDir)) {
+    fs.rmSync(outputDir, { recursive: true, force: true });
   }
+
+  const options = {
+    urls: [url],
+    directory: outputDir,
+    recursive: false,
+    maxRecursiveDepth: 0,
+  };
+
+  // Download the site and assets
+  await scrape(options);
+
+  // Inject our common search javascript into the downloaded index.html
+  const indexPath = path.join(outputDir, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    let html = fs.readFileSync(indexPath, 'utf-8');
+    const commonScript = `<script src="/scraper/assets/osp-search.js"></script>`;
+    html = html.replace(/<\/body>/i, `${commonScript}</body>`);
+    fs.writeFileSync(indexPath, html);
+  }
+  
+  return `/sites/${replicationId}/index.html`;
 }

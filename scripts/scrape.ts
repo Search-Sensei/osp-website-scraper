@@ -11,30 +11,12 @@ program
   .description('CLI to clone a website and inject search interceptors locally')
   .requiredOption('--url <url>', 'Source URL to clone')
   .requiredOption('--name <name>', 'Client or site name')
-  .requiredOption('--api <api>', 'Search API URL')
-  .requiredOption('--input <selector>', 'Search Input Selector')
-  .requiredOption('--container <selector>', 'Results Container Selector')
-  .option('--button <selector>', 'Search Button Selector', undefined)
-  .option('--mapping <json>', 'Response mapping JSON string', JSON.stringify({
-    resultsPath: "data.results",
-    titleField: "title",
-    snippetField: "excerpt",
-    urlField: "url"
-  }))
   .action(async (options) => {
     try {
       const replicationId = options.name.toLowerCase().replace(/[\s\W]+/g, '_');
       console.log(`Starting replication for: ${options.name} (${options.url})`);
-      
-      const config = {
-        apiUrl: options.api,
-        inputSelector: options.input,
-        buttonSelector: options.button,
-        resultsSelector: options.container,
-        mapping: JSON.parse(options.mapping)
-      };
 
-      const clonedPath = await runScraper(replicationId, options.url, config);
+      const clonedPath = await runScraper(replicationId, options.url);
       
       const siteEntry = {
         id: replicationId,
@@ -42,8 +24,7 @@ program
         source_url: options.url,
         status: 'COMPLETED',
         cloned_path: clonedPath,
-        created_at: new Date().toISOString(),
-        config: config
+        created_at: new Date().toISOString()
       };
 
       const dbPath = path.join(process.cwd(), 'data', 'sites.json');

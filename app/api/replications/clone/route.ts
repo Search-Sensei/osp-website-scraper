@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 import { runScraper } from '@/lib/scraper';
 import { query } from '@/lib/db';
-import { commitAndPushFile } from '@/lib/github';
+import { commitAndPushDirectory } from '@/lib/github';
 import path from 'path';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { url, client_name, api, input_selector, container_selector, button_selector, mapping } = body;
+    const { url, client_name } = body;
 
-    if (!url || !client_name || !api || !input_selector || !container_selector) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!url || !client_name) {
+      return NextResponse.json({ error: 'Missing required fields: url, client_name' }, { status: 400 });
     }
 
     const replicationId = client_name.toLowerCase().replace(/[\s\W]+/g, '_');
@@ -21,53 +21,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Site '${client_name}' has already been cloned. Please use a different name or remove the existing one first.` }, { status: 409 });
     }
 
-    // Default mapping if not provided
-    const configMapping = mapping ? JSON.parse(mapping) : {
-      resultsPath: "data.results",
-      titleField: "title",
-      snippetField: "excerpt",
-      urlField: "url"
-    };
-
-    const config = {
-      apiUrl: api,
-      inputSelector: input_selector,
-      buttonSelector: button_selector || undefined,
-      resultsSelector: container_selector,
-      mapping: configMapping
-    };
-
     console.log(`Starting replication for: ${client_name} (${url})`);
 
     // 1. Run Playwright scraper
-    const clonedPath = await runScraper(replicationId, url, config);
+    const clonedPath = await runScraper(replicationId, url);
 
     // 2. Insert into PostgreSQL
     await query(
-      `INSERT INTO site_replications (id, client_name, source_url, status, cloned_path, config) 
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO site_replications (id, client_name, source_url, status, cloned_path) 
+       VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (id) DO UPDATE SET 
          client_name = EXCLUDED.client_name,
          source_url = EXCLUDED.source_url,
          status = EXCLUDED.status,
          cloned_path = EXCLUDED.cloned_path,
-         config = EXCLUDED.config,
          updated_at = NOW()`,
-      [replicationId, client_name, url, 'COMPLETED', clonedPath, config]
+      [replicationId, client_name, url, 'COMPLETED', clonedPath]
     );
 
     // 3. Commit and push to GitHub
     const repoOwner = process.env.GITHUB_REPO_OWNER || 'Search-Sensei';
     const repoName = process.env.GITHUB_REPO_NAME || 'osp-website-scraper';
-    const absoluteLocalPath = path.join(process.cwd(), 'public', 'sites', replicationId, 'index.html');
-    const filePathInRepo = `public/sites/${replicationId}/index.html`;
+    const absoluteLocalDir = path.join(process.cwd(), 'public', 'sites', replicationId);
+    const basePathInRepo = `public/sites/${replicationId}`;
     
-    await commitAndPushFile(
+    await commitAndPushDirectory(
       repoOwner, 
       repoName, 
-      filePathInRepo, 
-      absoluteLocalPath, 
-      `feat: add scraped site for ${client_name} via UI`
+      basePathInRepo, 
+      absoluteLocalDir, 
+      `feat: add mirrored site for ${client_name} via UI`
     );
 
     return NextResponse.json({ 

@@ -6,11 +6,31 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_PAT,
 });
 
-export async function commitAndPushFile(
+function getAllFiles(dirPath: string, arrayOfFiles: string[] = []) {
+  const files = fs.readdirSync(dirPath);
+
+  files.forEach(function (file) {
+    if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+      arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles);
+    } else {
+      arrayOfFiles.push(path.join(dirPath, "/", file));
+    }
+  });
+
+  return arrayOfFiles;
+}
+
+function isBinary(filePath: string): boolean {
+  const ext = path.extname(filePath).toLowerCase();
+  const textExtensions = ['.html', '.css', '.js', '.json', '.xml', '.svg', '.txt', '.md'];
+  return !textExtensions.includes(ext);
+}
+
+export async function commitAndPushDirectory(
   repoOwner: string,
   repoName: string,
-  filePathInRepo: string, // e.g. "public/sites/community_savings_bank/index.html"
-  absoluteLocalPath: string, // e.g. "/app/public/sites/community_savings_bank/index.html"
+  basePathInRepo: string, // e.g. "public/sites/community_savings_bank"
+  absoluteLocalDir: string, // e.g. "/app/public/sites/community_savings_bank"
   message: string
 ) {
   if (!process.env.GITHUB_PAT) {
@@ -19,7 +39,6 @@ export async function commitAndPushFile(
   }
 
   try {
-    // 1. Get the current commit object
     const { data: refData } = await octokit.git.getRef({
       owner: repoOwner,
       repo: repoName,
@@ -27,7 +46,6 @@ export async function commitAndPushFile(
     });
     const commitSha = refData.object.sha;
 
-    // 2. Get the commit to find the base tree
     const { data: commitData } = await octokit.git.getCommit({
       owner: repoOwner,
       repo: repoName,
@@ -35,31 +53,41 @@ export async function commitAndPushFile(
     });
     const treeSha = commitData.tree.sha;
 
-    // 3. Create a blob for the new file
-    const content = fs.readFileSync(absoluteLocalPath, 'utf8');
-    const { data: blobData } = await octokit.git.createBlob({
-      owner: repoOwner,
-      repo: repoName,
-      content,
-      encoding: 'utf-8',
-    });
+    const allFiles = getAllFiles(absoluteLocalDir);
+    const treeItems: any[] = [];
 
-    // 4. Create a new tree containing the new file
+    // Create blobs for all files
+    for (const filePath of allFiles) {
+      const relativePath = path.relative(absoluteLocalDir, filePath);
+      const repoPath = `${basePathInRepo}/${relativePath}`.replace(/\\/g, '/');
+      const binary = isBinary(filePath);
+      
+      const content = binary 
+        ? fs.readFileSync(filePath).toString('base64')
+        : fs.readFileSync(filePath, 'utf8');
+
+      const { data: blobData } = await octokit.git.createBlob({
+        owner: repoOwner,
+        repo: repoName,
+        content,
+        encoding: binary ? 'base64' : 'utf-8',
+      });
+
+      treeItems.push({
+        path: repoPath,
+        mode: '100644',
+        type: 'blob',
+        sha: blobData.sha,
+      });
+    }
+
     const { data: newTreeData } = await octokit.git.createTree({
       owner: repoOwner,
       repo: repoName,
       base_tree: treeSha,
-      tree: [
-        {
-          path: filePathInRepo,
-          mode: '100644',
-          type: 'blob',
-          sha: blobData.sha,
-        },
-      ],
+      tree: treeItems,
     });
 
-    // 5. Create a new commit
     const { data: newCommitData } = await octokit.git.createCommit({
       owner: repoOwner,
       repo: repoName,
@@ -68,7 +96,6 @@ export async function commitAndPushFile(
       parents: [commitSha],
     });
 
-    // 6. Update the reference
     await octokit.git.updateRef({
       owner: repoOwner,
       repo: repoName,
@@ -76,7 +103,7 @@ export async function commitAndPushFile(
       sha: newCommitData.sha,
     });
 
-    console.log(`Successfully committed and pushed to ${repoOwner}/${repoName}: ${filePathInRepo}`);
+    console.log(`Successfully committed directory to ${repoOwner}/${repoName}: ${basePathInRepo} (${treeItems.length} files)`);
   } catch (error: any) {
     console.error('Error committing to GitHub:', error);
     throw error;
