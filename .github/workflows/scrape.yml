@@ -55,23 +55,34 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Run scraper
+        env:
+          SCRAPE_URL: ${{ inputs.url }}
+          SCRAPE_NAME: ${{ inputs.name }}
+          SCRAPE_API: ${{ inputs.api }}
+          SCRAPE_INPUT: ${{ inputs.input_selector }}
+          SCRAPE_CONTAINER: ${{ inputs.container_selector }}
+          SCRAPE_BUTTON: ${{ inputs.button_selector }}
+          SCRAPE_MAPPING: ${{ inputs.mapping }}
         run: |
-          ARGS="--url \"${{ inputs.url }}\" --name \"${{ inputs.name }}\" --api \"${{ inputs.api }}\" --input \"${{ inputs.input_selector }}\" --container \"${{ inputs.container_selector }}\""
+          ARGS=(--url "$SCRAPE_URL" --name "$SCRAPE_NAME" --api "$SCRAPE_API" --input "$SCRAPE_INPUT" --container "$SCRAPE_CONTAINER")
           
-          if [ -n "${{ inputs.button_selector }}" ]; then
-            ARGS="$ARGS --button \"${{ inputs.button_selector }}\""
+          if [ -n "$SCRAPE_BUTTON" ]; then
+            ARGS+=(--button "$SCRAPE_BUTTON")
           fi
           
-          if [ -n "${{ inputs.mapping }}" ]; then
-            ARGS="$ARGS --mapping '${{ inputs.mapping }}'"
+          if [ -n "$SCRAPE_MAPPING" ]; then
+            ARGS+=(--mapping "$SCRAPE_MAPPING")
           fi
           
-          eval "npm run scrape -- $ARGS"
+          npm run scrape -- "${ARGS[@]}"
 
       - name: Commit and push changes
+        env:
+          SCRAPE_NAME: ${{ inputs.name }}
+          SCRAPE_URL: ${{ inputs.url }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/ public/sites/
-          git diff --cached --quiet || git commit -m "scrape: ${{ inputs.name }} from ${{ inputs.url }}"
+          git diff --cached --quiet || git commit -m "scrape: ${SCRAPE_NAME} from ${SCRAPE_URL}"
           git push
