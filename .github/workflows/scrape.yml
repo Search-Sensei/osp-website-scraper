@@ -1,0 +1,77 @@
+name: Scrape Website
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Source URL to clone'
+        required: true
+        type: string
+      name:
+        description: 'Client or site name'
+        required: true
+        type: string
+      api:
+        description: 'Search API URL'
+        required: true
+        type: string
+      input_selector:
+        description: 'Search Input Selector (CSS)'
+        required: true
+        type: string
+      container_selector:
+        description: 'Results Container Selector (CSS)'
+        required: true
+        type: string
+      button_selector:
+        description: 'Search Button Selector (CSS, optional)'
+        required: false
+        type: string
+      mapping:
+        description: 'Response mapping JSON (optional)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Run scraper
+        run: |
+          ARGS="--url \"${{ inputs.url }}\" --name \"${{ inputs.name }}\" --api \"${{ inputs.api }}\" --input \"${{ inputs.input_selector }}\" --container \"${{ inputs.container_selector }}\""
+          
+          if [ -n "${{ inputs.button_selector }}" ]; then
+            ARGS="$ARGS --button \"${{ inputs.button_selector }}\""
+          fi
+          
+          if [ -n "${{ inputs.mapping }}" ]; then
+            ARGS="$ARGS --mapping '${{ inputs.mapping }}'"
+          fi
+          
+          eval "npm run scrape -- $ARGS"
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ public/sites/
+          git diff --cached --quiet || git commit -m "scrape: ${{ inputs.name }} from ${{ inputs.url }}"
+          git push
