@@ -39,6 +39,16 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
+      - name: Copy docker-compose to VM
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: KeyCloakAdmin
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "/home/KeyCloakAdmin/osp-scraper"
+
       - name: Deploy to VM via SSH
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: appleboy/ssh-action@v1.0.3
@@ -51,7 +61,12 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           envs: GHCR_TOKEN,GITHUB_PAT
           script: |
-            IMAGE="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/osp-website-scraper:${{ github.sha }}"
+            # Navigate to the target directory where docker-compose.yml was copied
+            cd /home/KeyCloakAdmin/osp-scraper
+
+            # Export variables for docker-compose
+            export IMAGE="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/osp-website-scraper:${{ github.sha }}"
+            export GITHUB_REPO_OWNER="${{ github.repository_owner }}"
 
             echo "==> Logging into GHCR on VM..."
             echo "$GHCR_TOKEN" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -59,24 +74,14 @@ jobs:
             echo "==> Pulling latest scraper image..."
             sudo docker pull "$IMAGE"
 
-            echo "==> Stopping existing container (if any)..."
-            sudo docker rm -f osp-website-scraper 2>/dev/null || true
-
             echo "==> Ensuring .env file exists..."
             touch .env
 
-            echo "==> Starting new container on port 3002..."
-            sudo docker run -d \
-              --name osp-website-scraper \
-              --restart unless-stopped \
-              -p 3002:3000 \
-              --env-file .env \
-              -e GITHUB_PAT="$GITHUB_PAT" \
-              -e GITHUB_REPO_OWNER="${{ github.repository_owner }}" \
-              -e GITHUB_REPO_NAME="osp-website-scraper" \
-              "$IMAGE"
+            echo "==> Starting containers with Docker Compose..."
+            # Pass variables directly to sudo environment so docker compose picks them up
+            sudo IMAGE="$IMAGE" GITHUB_PAT="$GITHUB_PAT" GITHUB_REPO_OWNER="$GITHUB_REPO_OWNER" docker compose up -d
 
             echo "==> Waiting for healthcheck..."
             timeout 30s bash -c 'until curl -sf http://localhost:3002/scraper; do echo "Waiting..."; sleep 3; done'
-            echo "==> osp-website-scraper deployed successfully!"
+            echo "==> osp-website-scraper deployed successfully with Postgres DB!"
 
