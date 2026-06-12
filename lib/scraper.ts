@@ -25,7 +25,18 @@ export async function runScraper(replicationId: string, url: string): Promise<st
   const indexPath = path.join(outputDir, 'index.html');
   if (fs.existsSync(indexPath)) {
     let html = fs.readFileSync(indexPath, 'utf-8');
-    const commonScript = `<script src="/scraper/assets/osp-search.js"></script>`;
+    const commonScript = `<script src="/scraper/assets/osp-search.js"></script>
+<script>
+// Block navigation to other pages but keep JS clicks (like menus) working
+document.addEventListener('click', function(e) {
+  const anchor = e.target.closest('a');
+  if (!anchor) return;
+  const href = anchor.getAttribute('href');
+  if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+  e.preventDefault();
+  console.log('Navigation blocked to prevent leaving the preview mode:', href);
+});
+</script>`;
     html = html.replace(/<\/body>/i, `${commonScript}</body>`);
     fs.writeFileSync(indexPath, html);
   }
