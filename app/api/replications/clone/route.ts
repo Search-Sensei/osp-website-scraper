@@ -15,6 +15,12 @@ export async function POST(request: Request) {
 
     const replicationId = client_name.toLowerCase().replace(/[\s\W]+/g, '_');
     
+    // Check if site already exists
+    const existing = await query('SELECT id FROM site_replications WHERE id = $1', [replicationId]);
+    if (existing.rows.length > 0) {
+      return NextResponse.json({ error: `Site '${client_name}' has already been cloned. Please use a different name or remove the existing one first.` }, { status: 409 });
+    }
+
     // Default mapping if not provided
     const configMapping = mapping ? JSON.parse(mapping) : {
       resultsPath: "data.results",
