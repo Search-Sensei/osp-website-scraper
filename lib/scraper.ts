@@ -9,8 +9,11 @@ export async function runScraper(replicationId: string, url: string, config: any
   const page = await context.newPage();
   
   try {
-    // Create local directory
+    // Remove old copy if it exists, then create fresh directory
     const outputDir = path.join(process.cwd(), 'public', 'sites', replicationId);
+    if (fs.existsSync(outputDir)) {
+      fs.rmSync(outputDir, { recursive: true, force: true });
+    }
     fs.mkdirSync(outputDir, { recursive: true });
 
     // Download page
