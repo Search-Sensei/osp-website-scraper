@@ -59,7 +59,7 @@ export default function ReplicationTable({ sites }: { sites: any[] }) {
                   </td>
                   <td className="px-6 py-4 space-x-3">
                     {site.status === 'COMPLETED' && (
-                      <a href={site.cloned_path} target="_blank" className="font-medium text-blue-600 hover:underline">
+                      <a href={`/scraper${site.cloned_path}`} target="_blank" className="font-medium text-blue-600 hover:underline">
                         View
                       </a>
                     )}
