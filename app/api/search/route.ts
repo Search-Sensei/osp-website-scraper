@@ -1,24 +1,29 @@
 import { NextResponse } from 'next/server';
 
 const topics = [
-  "Checking & Savings Accounts",
-  "Personal Wealth Management",
-  "Corporate Banking Solutions",
-  "Mortgage & Refinancing Options",
-  "Retirement Planning Tools",
-  "Credit Card Rewards & Benefits",
-  "Online & Mobile Banking Features",
-  "Commercial Real Estate Loans",
-  "Investment Portfolios",
-  "Small Business Financing"
+  "Find the Right Card",
+  "Open a Checking Account",
+  "Refinance Your Home",
+  "Wealth Management Solutions",
+  "Small Business Loans",
+  "Auto Loan Rates",
+  "Mobile Banking App",
+  "Certificate of Deposit (CD)",
+  "Retirement Planning",
+  "Personal Loans"
 ];
 
 const descriptions = [
-  "Explore our comprehensive options designed to help you build financial security and achieve your long-term goals.",
-  "Get competitive rates and flexible terms that adapt to your unique financial situation and lifestyle.",
-  "Secure your future with advanced tools, expert advice, and personalized strategies from our dedicated team.",
-  "Manage your money anytime, anywhere with our award-winning digital platform and 24/7 customer support.",
-  "Whether you're starting out or scaling up, we have the resources and capital to fuel your next big step."
+  "down balances faster, maximize cash <b>back</b>, earn rewards or begin building your credit history, we have the ideal card for you! &nbsp; No matter which card",
+  "access to your funds anytime, with no hidden <b>fees</b> and easy online bill pay. &nbsp; Manage your daily expenses",
+  "interest rates are historically low, making now the perfect time to <b>refinance</b> your existing mortgage. &nbsp; Discover how much you",
+  "portfolio growth through strategic investments, our <b>wealth</b> advisors are ready to help you plan for the future. &nbsp; Schedule a",
+  "flexible financing options designed to help your <b>business</b> thrive in today's competitive market. &nbsp; Learn more about our",
+  "new or used vehicles with competitive <b>rates</b> and flexible terms up to 72 months. &nbsp; Apply online in minutes",
+  "deposit checks, transfer funds, and monitor your <b>account</b> securely from your smartphone. &nbsp; Download our highly-rated",
+  "guaranteed returns with a fixed-rate <b>CD</b>. Choose terms ranging from 3 months to 5 years. &nbsp; Maximize your savings",
+  "secure your golden years with a comprehensive <b>retirement</b> strategy tailored to your lifestyle. &nbsp; Speak with a planner",
+  "consolidate debt or fund your next big project with a fixed-rate <b>personal</b> loan. &nbsp; No collateral required"
 ];
 
 // Generate 100 realistic-looking mock results
