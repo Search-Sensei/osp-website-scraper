@@ -23,6 +23,21 @@ export default function ReplicationTable({ sites }: { sites: any[] }) {
     router.refresh();
   };
 
+  const handleDelete = async (id: string, clientName: string) => {
+    if (!confirm(`Are you sure you want to delete ${clientName}? This will permanently remove the cloned files.`)) return;
+    
+    try {
+      const res = await fetch(`/scraper/api/replications/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        router.refresh();
+      } else {
+        alert('Failed to delete site.');
+      }
+    } catch (e) {
+      alert('Error deleting site.');
+    }
+  };
+
   return (
     <>
       <div className="mb-4 flex justify-end">
@@ -57,12 +72,15 @@ export default function ReplicationTable({ sites }: { sites: any[] }) {
                   <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                     {new Date(site.created_at).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 space-x-3">
+                  <td className="px-6 py-4 space-x-3 flex items-center">
                     {site.status === 'COMPLETED' && (
                       <a href={`/scraper${site.cloned_path}`} target="_blank" className="font-medium text-blue-600 hover:underline">
                         View
                       </a>
                     )}
+                    <button onClick={() => handleDelete(site.id, site.client_name)} className="font-medium text-red-600 hover:underline">
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
