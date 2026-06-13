@@ -97,8 +97,15 @@ window.OSPSearch = {
     } = config;
 
     const formOrBtn = document.querySelector(formSelector);
-    const input = document.querySelector(inputSelector);
     const firstRow = document.querySelector(rowSelector);
+    let input = document.querySelector(inputSelector);
+
+    if (formOrBtn) {
+      const inputInsideForm = formOrBtn.querySelector(inputSelector);
+      if (inputInsideForm) {
+        input = inputInsideForm;
+      }
+    }
 
     if (!formOrBtn || !input || !firstRow) {
       console.warn('OSP Search: Missing required DOM elements for templating. Check your selectors.', {formOrBtn, input, firstRow});
