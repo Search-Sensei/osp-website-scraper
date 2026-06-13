@@ -48,7 +48,12 @@ window.OSPSearch = {
    * - URL link: class="osp-url"
    */
   attachFixedAdapter(config) {
-    const apiUrl = config.apiUrl || '/scraper/api/search';
+    let apiUrl = config.apiUrl || '/scraper/api/search';
+    
+    // Always use local mock API when running locally
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
+      apiUrl = 'http://localhost:3000/scraper/api/search';
+    }
     
     const triggerEl = document.getElementById('osp-search-trigger');
     const inputEl = document.getElementById('osp-search-input');
