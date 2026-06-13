@@ -38,66 +38,41 @@ window.OSPSearch = {
   },
 
   /**
-   * Generic DOM Builder
+   * Generic HTML Builder (Placeholder approach)
    * 
-   * Takes a template HTML string and an array of results, and returns a DocumentFragment
-   * containing the fully populated DOM nodes.
+   * Takes an HTML string template with {{title}}, {{detail}}, and {{url}} placeholders,
+   * replaces them with the actual result data, and returns a DocumentFragment containing
+   * the populated DOM nodes.
    * 
-   * @param {Object} config - Configuration object
-   * @param {string} config.templateHtml - The HTML string representing a single result row
-   * @param {Object} config.mappings - Mapping object mapping fields to child selectors
-   * @param {string} config.mappings.title - Selector for the title text
-   * @param {string} config.mappings.detail - Selector for the detail text
-   * @param {string} config.mappings.url - Selector for the anchor link
+   * @param {string} templateHtml - The HTML string representing a single result row, containing placeholders.
    * @param {Array} results - Array of result objects from the OSP Search API
    * @returns {DocumentFragment} - A fragment containing all the populated DOM nodes
    */
-  buildResultNodes(config, results) {
+  buildResultNodes(templateHtml, results) {
     const fragment = document.createDocumentFragment();
 
-    if (!results || results.length === 0) {
+    if (!results || results.length === 0 || !templateHtml) {
       return fragment;
     }
-
-    // Create a temporary container to parse the template HTML string into a DOM node
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = config.templateHtml.trim();
-    const templateNode = tempDiv.firstElementChild;
-
-    if (!templateNode) {
-      console.error('OSP Search: Invalid template HTML provided.');
-      return fragment;
-    }
-
-    // Clean up IDs from the template so cloned rows don't have duplicate IDs
-    templateNode.removeAttribute('id');
 
     // Generate nodes from the template for each result
     results.forEach(result => {
-      const rowNode = templateNode.cloneNode(true);
+      // Replace all placeholders using regex to handle multiple occurrences
+      let populatedHtml = templateHtml
+        .replace(/\{\{title\}\}/g, result.title || '')
+        .replace(/\{\{detail\}\}/g, result.detail || '')
+        .replace(/\{\{url\}\}/g, result.url || '#');
+
+      // Create a temporary container to parse the string into a DOM node
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = populatedHtml.trim();
       
-      if (config.mappings.title) {
-        const titleEl = rowNode.querySelector(config.mappings.title);
-        if (titleEl) titleEl.textContent = result.title;
+      const templateNode = tempDiv.firstElementChild;
+      if (templateNode) {
+        // Clean up IDs from the template so cloned rows don't have duplicate IDs
+        templateNode.removeAttribute('id');
+        fragment.appendChild(templateNode);
       }
-
-      if (config.mappings.detail) {
-        const detailEl = rowNode.querySelector(config.mappings.detail);
-        if (detailEl) detailEl.innerHTML = result.detail;
-      }
-
-      if (config.mappings.url) {
-        const urlEl = rowNode.querySelector(config.mappings.url);
-        if (urlEl) {
-           if (urlEl.tagName.toLowerCase() === 'a') {
-             urlEl.href = result.url || '#';
-           } else {
-             urlEl.textContent = result.url || '#';
-           }
-        }
-      }
-
-      fragment.appendChild(rowNode);
     });
 
     return fragment;
