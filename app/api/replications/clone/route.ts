@@ -7,7 +7,16 @@ import path from 'path';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { url, client_name } = body;
+    const { 
+      url, 
+      client_name,
+      search_form_selector,
+      search_input_selector,
+      result_row_selector,
+      result_title_selector,
+      result_detail_selector,
+      result_url_selector
+    } = body;
 
     if (!url || !client_name) {
       return NextResponse.json({ error: 'Missing required fields: url, client_name' }, { status: 400 });
@@ -25,15 +34,36 @@ export async function POST(request: Request) {
 
     // 1. Insert into PostgreSQL as COPYING initially
     await query(
-      `INSERT INTO site_replications (id, client_name, source_url, status) 
-       VALUES ($1, $2, $3, $4)`,
-      [replicationId, client_name, url, 'COPYING']
+      `INSERT INTO site_replications (
+        id, client_name, source_url, status, 
+        search_form_selector, search_input_selector, result_row_selector,
+        result_title_selector, result_detail_selector, result_url_selector
+      ) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        replicationId, client_name, url, 'COPYING',
+        search_form_selector || null,
+        search_input_selector || null,
+        result_row_selector || null,
+        result_title_selector || null,
+        result_detail_selector || null,
+        result_url_selector || null
+      ]
     );
+
+    const adapterConfig = {
+      search_form_selector,
+      search_input_selector,
+      result_row_selector,
+      result_title_selector,
+      result_detail_selector,
+      result_url_selector
+    };
 
     // 2. Start the actual scraping process in the background
     (async () => {
       try {
-        const clonedPath = await runScraper(replicationId, url);
+        const clonedPath = await runScraper(replicationId, url, adapterConfig);
         
         const repoOwner = process.env.GITHUB_REPO_OWNER || 'Search-Sensei';
         const repoName = process.env.GITHUB_REPO_NAME || 'osp-website-scraper';

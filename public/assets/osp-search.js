@@ -79,7 +79,79 @@ window.OSPSearch = {
         container.insertAdjacentHTML('beforeend', html);
       });
     });
+  },
+
+  /**
+   * Option 3: Template-Cloning Adapter
+   * The user defines selectors. We find an existing search result row, clone it, and use it as a template.
+   */
+  attachTemplateAdapter(config) {
+    const { 
+      apiUrl, 
+      formSelector, 
+      inputSelector, 
+      rowSelector, 
+      titleSelector, 
+      detailSelector, 
+      urlSelector 
+    } = config;
+
+    const form = document.querySelector(formSelector);
+    const input = document.querySelector(inputSelector);
+    const firstRow = document.querySelector(rowSelector);
+
+    if (!form || !input || !firstRow) {
+      console.warn('OSP Search: Missing required DOM elements for templating. Check your selectors.', {form, input, firstRow});
+      return;
+    }
+
+    // 1. Capture the parent container and clone the first row to act as our master template
+    const resultsContainer = firstRow.parentElement;
+    const templateNode = firstRow.cloneNode(true);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const query = input.value;
+      if (!query) return;
+
+      // Show loading
+      resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center;">Loading search results...</div>';
+
+      const results = await this.search(apiUrl, query);
+      
+      resultsContainer.innerHTML = ''; // Clear container
+
+      if (results.length === 0) {
+        resultsContainer.innerHTML = '<div style="padding: 20px;">No results found.</div>';
+        return;
+      }
+
+      // Generate nodes from the template
+      results.forEach(result => {
+        const rowNode = templateNode.cloneNode(true);
+        
+        if (titleSelector) {
+          const titleEl = rowNode.querySelector(titleSelector);
+          if (titleEl) titleEl.textContent = result.title;
+        }
+
+        if (detailSelector) {
+          const detailEl = rowNode.querySelector(detailSelector);
+          if (detailEl) detailEl.textContent = result.detail;
+        }
+
+        if (urlSelector) {
+           // If it's an <a> tag, update the href
+           const urlEl = rowNode.querySelector(urlSelector);
+           if (urlEl && urlEl.tagName.toLowerCase() === 'a') {
+             urlEl.href = result.url || '#';
+           }
+        }
+
+        resultsContainer.appendChild(rowNode);
+      });
+    });
   }
 };
 
-console.log('OSP Search Javascript loaded. Use window.OSPSearch.attachAdapter() to integrate native UI.');
+console.log('OSP Search Javascript loaded. Adapters are available.');
