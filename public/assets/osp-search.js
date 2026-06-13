@@ -65,13 +65,6 @@ window.OSPSearch = {
     const templateNode = firstRow.cloneNode(true);
     templateNode.removeAttribute('id');
 
-    // Automatically clean up any extra rows that the scraper might have captured
-    Array.from(resultsContainer.children).forEach(child => {
-      if (child !== firstRow) {
-        child.remove();
-      }
-    });
-
     const performSearch = async (e) => {
       e.preventDefault();
       const query = inputEl.value;
