@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" id="newsLetterGraphic" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 688.5 411.6" style="enable-background:new 0 0 688.5 411.6;" xml:space="preserve">
+<style type="text/css">
+	.st0{clip-path:url(#newsLetterGraphic_SVGID_2_);fill:#F6F5F4;}
+</style>
+<g>
+	<g>
+		<defs>
+			<rect id="newsLetterGraphic_SVGID_1_" y="0.3" width="688.9" height="411"/>
+		</defs>
+		<clipPath id="newsLetterGraphic_SVGID_2_">
+			<use xlink:href="#newsLetterGraphic_SVGID_1_"  style="overflow:visible;"/>
+		</clipPath>
+		<path class="st0" d="M0.7,422.3l44.9-15.1c41.6-14,79.9-36.1,112.8-65l142.1-125.4c183.6-118.9,388.9-35,388.9-35V-69.2H0.7V422.3
+			z"/>
+	</g>
+</g>
+</svg>
