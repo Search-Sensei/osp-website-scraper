@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 const octokit = new Octokit({
-  auth: process.env.GITHUB_PAT,
+  auth: process.env.PAT,
 });
 
 function getAllFiles(dirPath: string, arrayOfFiles: string[] = []) {
@@ -33,8 +33,8 @@ export async function commitAndPushDirectory(
   absoluteLocalDir: string, // e.g. "/app/public/sites/community_savings_bank"
   message: string
 ) {
-  if (!process.env.GITHUB_PAT) {
-    console.warn("GITHUB_PAT not set, skipping GitHub commit.");
+  if (!process.env.PAT) {
+    console.warn('PAT environment variable is not set. Cannot push to GitHub.');
     return;
   }
 

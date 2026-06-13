@@ -47,19 +47,6 @@ export async function POST(request: Request) {
       try {
         const clonedPath = await runScraper(replicationId, url);
         
-        const repoOwner = process.env.GITHUB_REPO_OWNER || 'Search-Sensei';
-        const repoName = process.env.GITHUB_REPO_NAME || 'osp-website-scraper';
-        const absoluteLocalDir = path.join(process.cwd(), 'public', 'sites', replicationId);
-        const basePathInRepo = `public/sites/${replicationId}`;
-        
-        await commitAndPushDirectory(
-          repoOwner, 
-          repoName, 
-          basePathInRepo, 
-          absoluteLocalDir, 
-          `feat: add mirrored site for ${client_name} via UI`
-        );
-
         // Update to COMPLETED when done
         await query(
           `UPDATE site_replications SET status = 'COMPLETED', cloned_path = $1, updated_at = NOW() WHERE id = $2`,
