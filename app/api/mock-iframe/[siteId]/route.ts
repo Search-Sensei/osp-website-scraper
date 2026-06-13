@@ -67,7 +67,7 @@ const PROXY_SCRIPT = `
 
 export async function GET(request: Request, { params }: { params: Promise<{ siteId: string }> | { siteId: string } }) {
   const { searchParams } = new URL(request.url);
-  const targetUrl = searchParams.get('url');
+  let targetUrl = searchParams.get('url');
   const resolvedParams = await params;
   const siteId = resolvedParams.siteId;
 
@@ -76,18 +76,38 @@ export async function GET(request: Request, { params }: { params: Promise<{ site
   }
 
   try {
+    // Rewrite yextpages.net domain to their public CNAME to avoid 'Not Authorized' 403 blocks
+    if (targetUrl.includes('answers_citizensbank_com.yextpages.net')) {
+      targetUrl = targetUrl.replace('answers_citizensbank_com.yextpages.net', 'answers.citizensbank.com');
+    }
+
     console.log(`Fetching iframe URL: ${targetUrl}`);
-    const response = await fetch(targetUrl);
+    const response = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Referer': 'https://www.citizensbank.com/'
+      }
+    });
     let html = await response.text();
 
     const scriptToInject = PROXY_SCRIPT.replace('[SITE_ID]', siteId);
 
+    // Extract origin from targetUrl
+    let origin = '';
+    try {
+      origin = new URL(targetUrl).origin + '/';
+    } catch (e) {}
+
+    const baseTag = origin ? `<base href="${origin}">` : '';
+
     // Inject our script right after <head>
     if (html.includes('<head>')) {
-      html = html.replace('<head>', '<head>' + scriptToInject);
+      html = html.replace('<head>', '<head>' + baseTag + scriptToInject);
     } else {
       // If no <head>, inject at the very top
-      html = scriptToInject + html;
+      html = baseTag + scriptToInject + html;
     }
 
     return new NextResponse(html, {

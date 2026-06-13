@@ -1,0 +1,57 @@
+{
+    "meta": {
+        "uuid": "mock-citizensbank-uuid",
+        "errors": []
+    },
+    "response": {
+        "businessId": 123456,
+        "modules": [
+            {
+                "verticalConfigId": "help_articles",
+                "resultsCount": 1,
+                "encodedState": "",
+                "results": [
+                    {
+                        "data": {
+                            "id": "1",
+                            "type": "helpArticle",
+                            "body": "Welcome to Citizens Bank. Our personal checking accounts offer a variety of benefits tailored to your needs.",
+                            "landingPageUrl": "https://www.citizensbank.com/checking/overview.aspx",
+                            "savedFilters": [],
+                            "shortDescription": "Personal Checking Accounts",
+                            "name": "Checking Accounts at Citizens Bank",
+                            "c_activeInAnswers": true,
+                            "c_articleCategory": "Personal Banking",
+                            "c_primaryCTA": {
+                                "label": "Read More",
+                                "linkType": "URL",
+                                "link": "https://www.citizensbank.com/checking/overview.aspx"
+                            },
+                            "s_snippet": "... personal checking accounts offer a variety of benefits tailored to your needs ...",
+                            "uid": "111111"
+                        },
+                        "highlightedFields": {
+                            "name": {
+                                "value": "Checking Accounts at Citizens Bank",
+                                "matchedSubstrings": [{"offset": 23, "length": 4}]
+                            }
+                        }
+                    }
+                ],
+                "appliedQueryFilters": [],
+                "queryDurationMillis": 100,
+                "facets": [],
+                "source": "KNOWLEDGE_MANAGER"
+            }
+        ],
+        "failedVerticals": [],
+        "queryId": "mock-query-id",
+        "searchIntents": [],
+        "locationBias": {
+            "latitude": 41.8239,
+            "longitude": -71.4128,
+            "locationDisplayName": "Providence, RI",
+            "accuracy": "IP"
+        }
+    }
+}
