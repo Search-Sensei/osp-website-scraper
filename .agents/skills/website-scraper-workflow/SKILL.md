@@ -15,8 +15,10 @@ You must follow these 5 steps in exact order. Do not skip verification steps.
 - **Command:** Run `npm run clone -- "<URL>"` where `<URL>` is the website provided by the user.
 - **Wait:** Ensure the Puppeteer script finishes downloading the completely rendered HTML and exits with success.
 
-### Step 2: Identify Original Backends
-- **Action:** STOP execution and explicitly ask the user: "Could you please provide the original backend domains, telemetry endpoints, or search provider names (e.g., `search.domain.com`, `bam.nr-data.net`, `yext`, `algolia`)? This will help me safely remove them."
+### Step 2: Identify Architecture & Original Backends
+- **Action:** STOP execution and explicitly ask the user two questions:
+  1. "Is the original site using Client-Side Rendering (CSR/Iframe) or Server-Side Rendering (SSR) for its search experience?"
+  2. "Could you please provide the original backend domains, telemetry endpoints, or search provider names (e.g., `search.domain.com`, `bam.nr-data.net`, `yext`, `algolia`)? This will help me safely remove them."
 - **Wait:** Wait for the user's response before proceeding.
 
 ### Step 3: Strip Backend, Ads, and Telemetry Scripts
