@@ -39,14 +39,14 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Copy docker-compose to VM
+      - name: Copy docker-compose and flyway to VM
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VM_HOST }}
           username: KeyCloakAdmin
           key: ${{ secrets.VM_SSH_KEY }}
-          source: "docker-compose.yml"
+          source: "docker-compose.yml,flyway"
           target: "/home/KeyCloakAdmin/osp-scraper"
 
       - name: Deploy to VM via SSH
@@ -80,6 +80,9 @@ jobs:
             echo "==> Starting containers with Docker Compose..."
             # Pass variables directly to sudo environment so docker compose picks them up
             sudo IMAGE="$IMAGE" GITHUB_PAT="$GITHUB_PAT" GITHUB_REPO_OWNER="$GITHUB_REPO_OWNER" docker compose up -d
+
+            echo "==> Running Flyway database migrations..."
+            sudo docker run --rm --network host -v $(pwd)/flyway/sql:/flyway/sql flyway/flyway -url=jdbc:postgresql://localhost:5432/website_scraper -user=postgres -password=postgres migrate
 
             echo "==> Waiting for healthcheck..."
             timeout 30s bash -c 'until curl -sf http://localhost:3002/scraper; do echo "Waiting..."; sleep 3; done'
