@@ -1,14 +1,14 @@
 /**
  * Common OSP Search Integration Script
  * 
- * This script is automatically injected into all cloned sites.
- * It provides a standard interface to call the OSP Search API.
+ * Provides a flexible, configuration-driven adapter to wire up a cloned
+ * static HTML site to the OSP Search API without modifying the native DOM structure.
  */
 
 window.OSPSearch = {
   /**
    * Call the OSP Search API
-   * @param {string} apiUrl - The full API URL (e.g., https://api.yourdomain.com/search)
+   * @param {string} apiUrl - The full API URL
    * @param {string} query - The search query
    * @returns {Promise<Array>} - Array of result objects
    */
@@ -38,37 +38,48 @@ window.OSPSearch = {
   },
 
   /**
-   * Fixed ID Adapter (Developer Workflow)
-   * The developer must add the following IDs/Classes to their native HTML:
-   * - Trigger (Button/Form): id="osp-search-trigger"
-   * - Input field: id="osp-search-input"
-   * - Result template row: id="osp-search-result-row"
-   * - Title text: class="osp-title"
-   * - Detail text: class="osp-detail"
-   * - URL link: class="osp-url"
+   * Flexible Selector Adapter (Developer Workflow)
+   * 
+   * The developer configures this adapter with CSS selectors that map
+   * to the already existing HTML structure on their local cloned site.
+   * 
+   * @param {Object} config - Configuration object
+   * @param {string} config.apiUrl - Endpoint for the search API
+   * @param {string} config.triggerSelector - Selector for the form or button to submit search
+   * @param {string} config.inputSelector - Selector for the text input containing the query
+   * @param {string} config.containerSelector - Selector for the wrapper containing all results
+   * @param {string} config.templateRowSelector - Selector for the single item row template
+   * @param {Object} config.mappings - Mapping object mapping fields to child selectors
+   * @param {string} config.mappings.title - Selector for the title text
+   * @param {string} config.mappings.detail - Selector for the detail text
+   * @param {string} config.mappings.url - Selector for the anchor link
    */
-  attachFixedAdapter(config) {
+  init(config) {
     let apiUrl = config.apiUrl || '/scraper/api/search';
     
-    // Always use local mock API when running locally
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
-      apiUrl = 'http://localhost:3000/scraper/api/search';
+    // Always use local mock API when running locally on dashboard
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      if (apiUrl.startsWith('/')) {
+        apiUrl = `http://localhost:3000${apiUrl}`;
+      }
     }
     
-    const triggerEl = document.getElementById('osp-search-trigger');
-    const inputEl = document.getElementById('osp-search-input');
-    const firstRow = document.getElementById('osp-search-result-row');
+    const triggerEl = document.querySelector(config.triggerSelector);
+    const inputEl = document.querySelector(config.inputSelector);
+    const resultsContainer = document.querySelector(config.containerSelector);
+    const firstRow = document.querySelector(config.templateRowSelector);
 
-    if (!triggerEl || !inputEl || !firstRow) {
-      console.warn('OSP Search: Missing required DOM elements for fixed adapter. Ensure osp-search-trigger, osp-search-input, and osp-search-result-row IDs exist in the HTML.');
+    if (!triggerEl || !inputEl || !resultsContainer || !firstRow) {
+      console.warn('OSP Search: Missing required DOM elements for adapter. Check your config selectors.');
       return;
     }
 
-    const resultsContainer = firstRow.parentElement;
-    
     // Clean up IDs from the template so cloned rows don't have duplicate IDs
     const templateNode = firstRow.cloneNode(true);
     templateNode.removeAttribute('id');
+
+    // Remove the template row from the DOM initially
+    firstRow.remove();
 
     const performSearch = async (e) => {
       e.preventDefault();
@@ -90,13 +101,13 @@ window.OSPSearch = {
       results.forEach(result => {
         const rowNode = templateNode.cloneNode(true);
         
-        const titleEl = rowNode.querySelector('.osp-title');
+        const titleEl = rowNode.querySelector(config.mappings.title);
         if (titleEl) titleEl.textContent = result.title;
 
-        const detailEl = rowNode.querySelector('.osp-detail');
-        if (detailEl) detailEl.textContent = result.detail;
+        const detailEl = rowNode.querySelector(config.mappings.detail);
+        if (detailEl) detailEl.innerHTML = result.detail;
 
-        const urlEl = rowNode.querySelector('.osp-url');
+        const urlEl = rowNode.querySelector(config.mappings.url);
         if (urlEl) {
            if (urlEl.tagName.toLowerCase() === 'a') {
              urlEl.href = result.url || '#';
@@ -120,6 +131,15 @@ window.OSPSearch = {
           performSearch(e);
         }
       });
+    }
+    
+    // Automatically trigger initial search if there is a query string param (e.g. ?q=Bank)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlQuery = urlParams.get('q') || urlParams.get('query');
+    if (urlQuery) {
+      inputEl.value = urlQuery;
+      // Synthesize an event
+      performSearch(new Event('submit'));
     }
   }
 };
