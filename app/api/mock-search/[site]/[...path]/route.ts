@@ -1,19 +1,34 @@
 import { NextResponse } from 'next/server';
 import { mockDatabase } from '@/app/lib/mock-data';
+import fs from 'fs';
+import path from 'path';
 
 export async function GET(
   request: Request,
   { params }: { params: { site: string; path: string[] } }
 ) {
-  const { site, path } = params;
+  const { site, path: routePath } = params;
   const { searchParams } = new URL(request.url);
 
-  console.log(`[Mock Search API] Site: ${site}, Path: /${path.join('/')}`);
+  console.log(`[Mock Search API] Site: ${site}, Path: /${routePath.join('/')}`);
 
   // Artificial delay to simulate network latency
   await new Promise(resolve => setTimeout(resolve, 800));
 
-  // Deep clone to avoid mutating base
+  try {
+    // 1. Try to load site-specific mock JSON file
+    const mockFilePath = path.join(process.cwd(), 'app', 'lib', 'mocks', `${site}.json`);
+    if (fs.existsSync(mockFilePath)) {
+      console.log(`[Mock Search API] Serving static mock from ${site}.json`);
+      const fileData = fs.readFileSync(mockFilePath, 'utf8');
+      return NextResponse.json(JSON.parse(fileData));
+    }
+  } catch (error) {
+    console.error(`[Mock Search API] Error loading ${site}.json:`, error);
+  }
+
+  // 2. Fallback to dynamic randomized data if no static file exists
+  console.log(`[Mock Search API] Fallback to dynamic data generation for ${site}`);
   let results = JSON.parse(JSON.stringify(mockDatabase));
 
   // Shuffle array using Fisher-Yates
@@ -22,81 +37,8 @@ export async function GET(
     [results[i], results[j]] = [results[j], results[i]];
   }
 
-  // Support for Nationwide (Yext format)
-  if (site === 'nationwide_com') {
-    // Yext uses 'input' parameter typically
-    const query = searchParams.get('input') || searchParams.get('query') || '';
-    
-    // For Yext format, if there is no query and it doesn't want default results, we could return empty. 
-    // Here we'll return 10 random items regardless to simulate generic answers.
-    const yextResults = results.slice(0, 10).map((r: any) => ({
-      data: {
-        id: r.id,
-        type: "helpArticle",
-        body: r.detail,
-        landingPageUrl: r.url,
-        shortDescription: r.title,
-        name: r.title,
-        c_activeInAnswers: true,
-        c_articleCategory: "Mock Category",
-        c_helpArticlesConnector: true,
-        c_primaryCTA: {
-          label: "Read More",
-          linkType: "URL",
-          link: r.url
-        },
-        s_snippet: r.detail,
-        uid: r.id
-      },
-      highlightedFields: {
-        name: {
-          value: r.title,
-          matchedSubstrings: [{ offset: 0, length: 4 }]
-        },
-        s_snippet: {
-          value: r.detail,
-          matchedSubstrings: [{ offset: 0, length: 4 }]
-        }
-      }
-    }));
-
-    // Construct the nested Yext JSON response format
-    const yextResponse = {
-      meta: {
-        uuid: `mock-uuid-${Date.now()}`,
-        errors: []
-      },
-      response: {
-        businessId: 1996565,
-        modules: [
-          {
-            verticalConfigId: "help_articles",
-            resultsCount: yextResults.length,
-            encodedState: "",
-            results: yextResults,
-            appliedQueryFilters: [],
-            queryDurationMillis: 150,
-            facets: [],
-            source: "KNOWLEDGE_MANAGER"
-          }
-        ],
-        failedVerticals: [],
-        queryId: `query-${Date.now()}`,
-        searchIntents: [],
-        locationBias: {
-          latitude: 13.752494,
-          longitude: 100.493509,
-          locationDisplayName: "Mock Location",
-          accuracy: "IP"
-        }
-      }
-    };
-
-    return NextResponse.json(yextResponse);
-  }
-
-  // Default basic format if site is unknown or simple
-  const query = searchParams.get('q') || searchParams.get('query') || '';
+  // Generic fallback format
+  const query = searchParams.get('q') || searchParams.get('query') || searchParams.get('input') || '';
   if (!query) {
     return NextResponse.json({ results: [] });
   }
