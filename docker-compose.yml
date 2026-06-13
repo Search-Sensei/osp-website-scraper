@@ -1,25 +1,10 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: osp-scraper-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: website_scraper
-    volumes:
-      - ./pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
   scraper:
     image: ${IMAGE}
     container_name: osp-website-scraper
     restart: unless-stopped
-    depends_on:
-      - postgres
     ports:
       - "3002:3000"
     volumes:
@@ -31,5 +16,3 @@ services:
       GITHUB_PAT: ${GITHUB_PAT}
       GITHUB_REPO_OWNER: ${GITHUB_REPO_OWNER}
       GITHUB_REPO_NAME: osp-website-scraper
-      # Connects directly to the compose postgres container
-      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/website_scraper
