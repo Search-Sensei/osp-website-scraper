@@ -1,0 +1,29 @@
+{
+  "results": [
+    {
+      "title": "Money Market Accounts",
+      "summary": "Maximize your earnings with our high-yield Money Market accounts. Enjoy competitive rates with the flexibility and convenience of check-writing privileges.",
+      "url": "/personal/checking-and-saving-solutions/money-market-accounts"
+    },
+    {
+      "title": "Wealth Management Solutions",
+      "summary": "Our Wealth Management team provides tailored strategies to help you manage your money, plan for the future, and achieve your financial goals.",
+      "url": "/wealth-management"
+    },
+    {
+      "title": "Cash Management for Businesses",
+      "summary": "Optimize your business cash flow with our comprehensive Cash Management tools designed for efficiency and security.",
+      "url": "/commercial/treasury-management/collection-solutions"
+    },
+    {
+      "title": "Deposit Rates",
+      "summary": "Check out our current deposit rates to see how fast your money can grow in our savings, checking, and CD accounts.",
+      "url": "/rates"
+    },
+    {
+      "title": "Mobile Banking",
+      "summary": "Manage your money anytime, anywhere with the Peapack Private Mobile Banking app. Check balances, deposit checks, and more.",
+      "url": "/personal/digital-solutions/mobile-banking"
+    }
+  ]
+}
