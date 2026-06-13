@@ -669,14 +669,14 @@ Place this snippet between the <head> and </head> tags on every page of your sit
               </div>
               <section aria-label="Search results" id="search--results" aria-describedby="search--current-terms">
                 <section class="search-container">
-
+                  <!-- 
                   <div class="search-item">
                     <a href="/credit-cards/find-the-right-card" class="search-link">
                       <span class="search-title">Find the Right Card</span>
                     </a>
                     <p class="search-summary"> down balances faster, maximize cash <b>back</b>, earn rewards or begin
                       building your credit history, we have the ideal card for you! &nbsp; No matter which card</p>
-                  </div>
+                  </div> -->
 
                 </section>
               </section>
@@ -998,20 +998,57 @@ Place this snippet between the <head> and </head> tags on every page of your sit
   </noscript>
   <script src="/scraper/assets/osp-search.js"></script>
   <script>
-    (function () {
-      const init = () => {
-        if (window.OSPSearch && window.OSPSearch.attachFixedAdapter) {
-          window.OSPSearch.attachFixedAdapter({ apiUrl: "/scraper/api/search" });
-        } else {
-          console.error("OSPSearch not loaded!");
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.querySelector('.search-form');
+      const input = document.querySelector('#searchResults-search');
+      const container = document.querySelector('.search-container');
+
+      if (!form || !input || !container) return;
+
+      const templateString = `
+        <div class="search-item">
+          <a href="{{url}}" class="search-link">
+            <span class="search-title">{{title}}</span>
+          </a>
+          <p class="search-summary">{{detail}}</p>
+        </div>
+      `;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const query = input.value;
+        if (!query) return;
+
+        container.innerHTML = '<div style="padding: 20px; text-align: center;">Loading search results...</div>';
+
+        // Set API URL (Production URL should be pulled from .env during integration)
+        const apiUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+          ? 'http://localhost:3000/scraper/api/search' 
+          : 'https://api.production-domain.com/search';
+
+        // Fetch results from mock API
+        const results = await window.OSPSearch.search(apiUrl, query);
+
+        // Clear loading state
+        container.innerHTML = '';
+
+        if (results.length === 0) {
+          container.innerHTML = '<div style="padding: 20px;">No results found.</div>';
+          return;
         }
-      };
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-      } else {
-        init();
+
+        // Build native DOM nodes from template string and append them
+        const domNodes = window.OSPSearch.buildResultNodes(templateString, results);
+        container.appendChild(domNodes);
+      });
+
+      // Initial trigger for ?q=Bank
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('q')) {
+        input.value = urlParams.get('q');
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
       }
-    })();
+    });
   </script>
   <script>
     // Block navigation to other pages but keep JS clicks (like menus) working
