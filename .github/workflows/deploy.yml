@@ -51,7 +51,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: KeyCloakAdmin
           key: ${{ secrets.VM_SSH_KEY }}
-          source: "docker-compose.yml,flyway"
+          source: "docker-compose.yml,flyway,public/sites"
           target: "/home/KeyCloakAdmin/osp-scraper"
 
       - name: Deploy to VM via SSH

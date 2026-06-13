@@ -19,14 +19,14 @@ Single **Next.js 14 (App Router, TypeScript)** application with three layers:
 
 ### Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 14 (App Router) |
-| Language | TypeScript |
-| Database | PostgreSQL |
-| Migrations | Flyway |
-| Scraper | Playwright |
-| UI | React (minimal, back-office styling) |
+| Layer      | Technology                           |
+| ------------| --------------------------------------|
+| Framework  | Next.js 14 (App Router)              |
+| Language   | TypeScript                           |
+| Database   | PostgreSQL                           |
+| Migrations | Flyway                               |
+| Scraper    | Playwright                           |
+| UI         | React (minimal, back-office styling) |
 
 ---
 
