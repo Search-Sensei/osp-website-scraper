@@ -152,7 +152,7 @@ You must follow these 5 steps in exact order. Do not skip verification steps.
 
 ### Step 6: Create and Run Automated Playwright Test
 - **Action:** Create a Playwright testing script under `scratch/test-search-<site_name>.js`. The script must launch Chromium in headless mode, navigate to the local site, interact with the search input/form or the appropriate URL query parameters, and verify that the local mock API returns results which are then successfully rendered in the DOM.
-- **Execution:** Run the script using `node scratch/test-search-<site_name>.js` and ensure it completes without errors and logs the updated HTML container.
+- **Execution & Iteration:** Run the script using `node scratch/test-search-<site_name>.js`. If the test fails, you must diagnose the issue, fix the code or the test script, and run the test again. Repeat this **Test -> Fix -> Test** loop until the test passes successfully and the DOM update is confirmed.
 
 ### Step 7: Confirm Testing Result
 - **Action:** Wait for the user to confirm the mock results rendered correctly inside the native UI template.
