@@ -4,7 +4,7 @@ import path from 'path';
 
 // This catch-all route intercepts requests like:
 // /api/mock-search/nationwide_com/v2/answers/search
-export async function GET(request: Request, { params }: { params: { siteId: string, path: string[] } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ siteId: string, path: string[] }> }) {
   const { siteId } = await params;
   
   console.log(`[Mock Search Router] Serving mock for site: ${siteId}`);
@@ -34,11 +34,11 @@ export async function GET(request: Request, { params }: { params: { siteId: stri
   }
 }
 
-export async function POST(request: Request, { params }: { params: { siteId: string, path: string[] } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ siteId: string, path: string[] }> }) {
   return GET(request, { params });
 }
 
-export async function HEAD(request: Request, { params }: { params: { siteId: string, path: string[] } }) {
+export async function HEAD(request: Request, { params }: { params: Promise<{ siteId: string, path: string[] }> }) {
   const response = await GET(request, { params });
   return new NextResponse(null, {
     status: response.status,
