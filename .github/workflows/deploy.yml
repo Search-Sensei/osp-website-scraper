@@ -51,7 +51,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: KeyCloakAdmin
           key: ${{ secrets.VM_SSH_KEY }}
-          source: "docker-compose.yml,flyway,public/sites"
+          source: "docker-compose.yml,public/sites"
           target: "/home/KeyCloakAdmin/osp-scraper"
 
       - name: Deploy to VM via SSH
@@ -88,10 +88,5 @@ jobs:
             # Pass variables directly to sudo environment so docker compose picks them up
             sudo IMAGE="$IMAGE" GITHUB_PAT="$GITHUB_PAT" GITHUB_REPO_OWNER="$GITHUB_REPO_OWNER" docker-compose up -d
 
-            echo "==> Running Flyway database migrations..."
-            sudo docker run --rm --network host -v $(pwd)/flyway/sql:/flyway/sql flyway/flyway -url=jdbc:postgresql://localhost:5432/website_scraper -user=postgres -password=postgres migrate
-
-            echo "==> Waiting for healthcheck..."
-            timeout 30s bash -c 'until curl -sf http://localhost:3002/scraper; do echo "Waiting..."; sleep 3; done'
-            echo "==> osp-website-scraper deployed successfully with Postgres DB!"
+            echo "==> osp-website-scraper deployed successfully!"
 
