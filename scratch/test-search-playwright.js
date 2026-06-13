@@ -39,11 +39,11 @@ const { chromium } = require('playwright');
     }
   });
 
-  console.log('Navigating to local peapack site...');
-  await page.goto('http://localhost:3000/scraper/sites/peapackprivate_com/index.html', { waitUntil: 'networkidle' });
+  console.log('Navigating to local communitysavings site...');
+  await page.goto('http://localhost:3000/scraper/sites/communitysavings_bank/index.html', { waitUntil: 'networkidle' });
 
-  console.log('Typing query "Money" into the "Search Again" box...');
-  await page.locator('#searchResults-search').fill('Money');
+  console.log('Typing query "Bank" into the "Search Again" box...');
+  await page.locator('#searchResults-search').fill('Bank');
   
   console.log('Clicking the Search button...');
   await page.locator('#searchSubmitButton').click();
