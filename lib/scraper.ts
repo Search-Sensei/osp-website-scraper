@@ -61,16 +61,32 @@ document.addEventListener('click', function(e) {
     fs.writeFileSync(indexPath, html);
   }
   
-  // Local Git Auto-Push
+  // Git Auto-Push
   try {
-    const { execSync } = require('child_process');
-    console.log(`Auto-pushing ${replicationId} to git...`);
-    execSync(`git add -f public/sites/${replicationId}`, { stdio: 'inherit' });
-    execSync(`git commit -m "Auto-cloned site: ${replicationId}"`, { stdio: 'inherit' });
-    execSync(`git push origin main`, { stdio: 'inherit' });
-    console.log(`Successfully pushed ${replicationId} to git.`);
+    if (process.env.GITHUB_PAT) {
+      console.log(`GITHUB_PAT detected, pushing via GitHub API...`);
+      const { commitAndPushDirectory } = await import('@/lib/github');
+      const repoOwner = process.env.GITHUB_REPO_OWNER || 'Search-Sensei';
+      const repoName = process.env.GITHUB_REPO_NAME || 'osp-website-scraper';
+      const basePathInRepo = `public/sites/${replicationId}`;
+      await commitAndPushDirectory(
+        repoOwner, 
+        repoName, 
+        basePathInRepo, 
+        outputDir, 
+        `feat: auto-clone site for ${replicationId}`
+      );
+      console.log(`Successfully pushed ${replicationId} via GitHub API.`);
+    } else {
+      console.log(`No GITHUB_PAT, falling back to local Git command...`);
+      const { execSync } = require('child_process');
+      execSync(`git add -f public/sites/${replicationId}`, { stdio: 'inherit' });
+      execSync(`git commit -m "Auto-cloned site: ${replicationId}"`, { stdio: 'inherit' });
+      execSync(`git push origin main`, { stdio: 'inherit' });
+      console.log(`Successfully pushed ${replicationId} to local git.`);
+    }
   } catch (err) {
-    console.warn(`Git auto-push failed or nothing to commit. See logs above.`);
+    console.warn(`Git auto-push failed. See logs above. Error:`, err);
   }
 
   return `/sites/${replicationId}/index.html`;
