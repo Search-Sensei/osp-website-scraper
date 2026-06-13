@@ -23,40 +23,53 @@ export async function POST(request: Request) {
 
     console.log(`Starting replication for: ${client_name} (${url})`);
 
-    // 1. Run Playwright scraper
-    const clonedPath = await runScraper(replicationId, url);
-
-    // 2. Insert into PostgreSQL
+    // 1. Insert into PostgreSQL as COPYING initially
     await query(
-      `INSERT INTO site_replications (id, client_name, source_url, status, cloned_path) 
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (id) DO UPDATE SET 
-         client_name = EXCLUDED.client_name,
-         source_url = EXCLUDED.source_url,
-         status = EXCLUDED.status,
-         cloned_path = EXCLUDED.cloned_path,
-         updated_at = NOW()`,
-      [replicationId, client_name, url, 'COMPLETED', clonedPath]
+      `INSERT INTO site_replications (id, client_name, source_url, status) 
+       VALUES ($1, $2, $3, $4)`,
+      [replicationId, client_name, url, 'COPYING']
     );
 
-    // 3. Commit and push to GitHub
-    const repoOwner = process.env.GITHUB_REPO_OWNER || 'Search-Sensei';
-    const repoName = process.env.GITHUB_REPO_NAME || 'osp-website-scraper';
-    const absoluteLocalDir = path.join(process.cwd(), 'public', 'sites', replicationId);
-    const basePathInRepo = `public/sites/${replicationId}`;
-    
-    await commitAndPushDirectory(
-      repoOwner, 
-      repoName, 
-      basePathInRepo, 
-      absoluteLocalDir, 
-      `feat: add mirrored site for ${client_name} via UI`
-    );
+    // 2. Start the actual scraping process in the background
+    (async () => {
+      try {
+        const clonedPath = await runScraper(replicationId, url);
+        
+        const repoOwner = process.env.GITHUB_REPO_OWNER || 'Search-Sensei';
+        const repoName = process.env.GITHUB_REPO_NAME || 'osp-website-scraper';
+        const absoluteLocalDir = path.join(process.cwd(), 'public', 'sites', replicationId);
+        const basePathInRepo = `public/sites/${replicationId}`;
+        
+        await commitAndPushDirectory(
+          repoOwner, 
+          repoName, 
+          basePathInRepo, 
+          absoluteLocalDir, 
+          `feat: add mirrored site for ${client_name} via UI`
+        );
 
+        // Update to COMPLETED when done
+        await query(
+          `UPDATE site_replications SET status = 'COMPLETED', cloned_path = $1, updated_at = NOW() WHERE id = $2`,
+          [clonedPath, replicationId]
+        );
+        console.log(`Successfully finished replication for ${client_name}`);
+
+      } catch (bgError: any) {
+        console.error(`Background replication error for ${client_name}:`, bgError);
+        // Mark as FAILED if something went wrong
+        await query(
+          `UPDATE site_replications SET status = 'FAILED', error_message = $1, updated_at = NOW() WHERE id = $2`,
+          [bgError.message || 'Unknown error during scraping/pushing', replicationId]
+        );
+      }
+    })();
+
+    // 3. Return immediately so the UI can show "COPYING"
     return NextResponse.json({ 
       success: true, 
-      replicationId, 
-      clonedPath 
+      replicationId,
+      status: 'COPYING'
     });
 
   } catch (error: any) {
