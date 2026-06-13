@@ -42,7 +42,7 @@ const mockDatabase = Array.from({ length: 100 }).map((_, i) => {
   const titleBase = titles[(i * 3) % titles.length];
   const frag1 = snippetFragments[(i * 7) % snippetFragments.length];
   const frag2 = snippetFragments[(i * 11) % snippetFragments.length];
-  
+
   return {
     title: titleBase,
     detail: `${frag1}, we have the ideal solution for you! &nbsp; ${frag2}...`,
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
 
   // Deep clone to avoid mutating base
   let results = JSON.parse(JSON.stringify(mockDatabase));
-  
+
   // Shuffle array using Fisher-Yates
   for (let i = results.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

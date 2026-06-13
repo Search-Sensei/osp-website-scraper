@@ -15,60 +15,110 @@ You must follow these 5 steps in exact order. Do not skip verification steps.
 - **Command:** Run `npm run clone -- "<URL>"` where `<URL>` is the website provided by the user.
 - **Wait:** Ensure the Puppeteer script finishes downloading the completely rendered HTML and exits with success.
 
-### Step 2: Configure the Search Template
+### Step 2: Identify Original Backends
+- **Action:** STOP execution and explicitly ask the user: "Could you please provide the original backend domains, telemetry endpoints, or search provider names (e.g., `search.domain.com`, `bam.nr-data.net`, `yext`, `algolia`)? This will help me safely remove them."
+- **Wait:** Wait for the user's response before proceeding.
+
+### Step 3: Strip Backend, Ads, and Telemetry Scripts
+- **Philosophy:** The goal is to copy the client site strictly for its "look and feel" to build a demo. We do NOT want their backend or any other functionality running.
+- **Action:** Open the downloaded `index.html`.
+- **Search & Remove Scripts:** Using the domains and names provided by the user, find and completely delete any `<script>` tags that load the original search provider. 
+- **Aggressive Ad/Telemetry Removal:** Search for and aggressively delete ALL `<script>` and `<iframe>` tags related to ads, trackers, and telemetry. Look for keywords like `google-analytics`, `googletagmanager`, `doubleclick`, `facebook`, `fbevents`, `qualtrics`, `celebrus`, etc. Wipe them out completely.
+- **Search & Remove Iframes:** Also find and remove any `<iframe src="...">` that points to the provided backend domains, leaving just its empty container `div`. 
+- **Why:** This is crucial to prevent the original backend from being called, to stop tracking pixels from firing, and to ensure our demo is clean, fast, and secure.
+
+### Step 4: Inject API Interceptor
 - **Locate HTML:** Find the downloaded `index.html` (e.g., `public/sites/<domain>/index.html`).
-- **Extract Template:** Find the native search result row element in the HTML. Extract its outer HTML into a javascript string template, substituting the native text with exact `{{title}}`, `{{detail}}`, and `{{url}}` placeholders.
-- **Inject Script:** Insert the following `<script>` block before the closing `</body>` tag of `index.html`, adapting the `querySelector` targets to match the form and container elements of the cloned site:
+- **Inject Script:** Insert the following `<script>` block immediately after the `<head>` tag in `index.html`. Configure the `proxyConfig` array to map the site's original search vendor to our local mock API endpoint!
 
 ```html
-<script src="/scraper/assets/osp-search.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const form = document.querySelector('.search-form-selector');
-    const input = document.querySelector('#search-input-selector');
-    const container = document.querySelector('.search-container-selector');
+  // --- Network Interceptor ---
+  // Reverse Proxy Configuration
+  const proxyConfig = [
+    { match: 'yext.com', endpoint: '/api/mock-search' } // <-- Add other vendors (e.g. algolia) here!
+  ];
 
-    if (!form || !input || !container) return;
+  // Block unwanted telemetry, ads, and original backend calls
+  const blockedDomains = ['example.com', 'doubleclick.net', 'google-analytics.com', 'googletagmanager.com', 'celebrus', 'qualtrics', 'trustarc.com'];
+  const isBlocked = (url) => typeof url === 'string' && blockedDomains.some(d => url.includes(d));
 
-    const templateString = \`
-      <!-- Your extracted template with {{title}}, {{detail}}, {{url}} placeholders goes here -->
-    \`;
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const query = input.value;
-      if (!query) return;
-
-      container.innerHTML = '<div style="padding: 20px; text-align: center;">Loading search results...</div>';
-
-      const results = await window.OSPSearch.search(query);
-
-      container.innerHTML = '';
-      if (results.length === 0) {
-        container.innerHTML = '<div style="padding: 20px;">No results found.</div>';
-        return;
+  const rewriteUrl = (url) => {
+    if (typeof url !== 'string') return url;
+    for (const p of proxyConfig) {
+      if (url.includes(p.match)) {
+        try {
+          const urlObj = new URL(url);
+          return window.location.origin + p.endpoint + urlObj.pathname + urlObj.search;
+        } catch (e) { return url; }
       }
-
-      const domNodes = window.OSPSearch.buildResultNodes(templateString, results);
-      container.appendChild(domNodes);
-    });
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('q')) {
-      input.value = urlParams.get('q');
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     }
-  });
+    return url;
+  };
+
+  const originalFetch = window.fetch;
+  window.fetch = async function(...args) {
+    let url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
+    if (isBlocked(url)) return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    
+    const rewritten = rewriteUrl(url);
+    if (rewritten !== url) {
+      if (typeof args[0] === 'string') args[0] = rewritten;
+      else if (args[0] && args[0].url) args[0] = new Request(rewritten, args[0]);
+    }
+    return originalFetch.apply(this, args);
+  };
+  
+  const originalXhrOpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+    if (isBlocked(url)) {
+      this.send = () => {
+        Object.defineProperties(this, { readyState: { value: 4 }, status: { value: 200 }, responseText: { value: '{}' } });
+        if (this.onreadystatechange) this.onreadystatechange();
+        if (this.onload) this.onload();
+      };
+      return;
+    }
+    url = rewriteUrl(url);
+    originalXhrOpen.apply(this, [method, url, ...rest]);
+  };
+
+  if (navigator.sendBeacon) {
+    const originalSendBeacon = navigator.sendBeacon;
+    navigator.sendBeacon = function(url, data) {
+      if (isBlocked(url)) return true;
+      return originalSendBeacon.apply(this, [rewriteUrl(url), data]);
+    };
+  }
+
+  const originalAppendChild = Node.prototype.appendChild;
+  Node.prototype.appendChild = function(node) {
+    if (node && node.tagName && node.tagName.toLowerCase() === 'script' && node.src) {
+      if (isBlocked(node.src)) return node;
+      node.src = rewriteUrl(node.src);
+    }
+    return originalAppendChild.call(this, node);
+  };
+
+  const originalInsertBefore = Node.prototype.insertBefore;
+  Node.prototype.insertBefore = function(node, referenceNode) {
+    if (node && node.tagName && node.tagName.toLowerCase() === 'script' && node.src) {
+      if (isBlocked(node.src)) return node;
+      node.src = rewriteUrl(node.src);
+    }
+    return originalInsertBefore.call(this, node, referenceNode);
+  };
+  // ---------------------------
 </script>
 ```
 
-### Step 3: Verify and Ask Human
+### Step 5: Implement Backend Mock Endpoint
 - **Action:** Review your injected script to ensure it correctly binds to the form.
 - **Human Verification:** STOP execution and explicitly ask the user: "Please run the dashboard, view the local site, and test the search functionality to verify it correctly hits the mock API."
 
-### Step 4: Confirm Testing Result
+### Step 6: Confirm Testing Result
 - **Action:** Wait for the user to confirm the mock results rendered correctly inside the native UI template.
 
-### Step 5: Push to Git
+### Step 7: Push to Git
 - **Action:** Once confirmed, run `git add -A`, `git commit -m "feat: clone and configure search for <site>"`, and `git push origin main`.
 - **Completion:** Notify the user that the site integration is completely finished and synced to the repository.
