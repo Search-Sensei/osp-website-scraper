@@ -28,8 +28,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <div className="bg-blue-50 text-blue-600 text-xs text-center py-1 border-b font-mono font-medium">
-          Deploy Version: {process.env.NEXT_PUBLIC_APP_VERSION || 'local-dev'}
+        <div className="bg-blue-50 text-blue-600 text-xs text-center py-1 border-b font-mono font-medium flex justify-center gap-4">
+          <span>Deploy Version: {process.env.NEXT_PUBLIC_APP_VERSION || 'local-dev'}</span>
+          <span>Deployed: {process.env.NEXT_PUBLIC_DEPLOY_DATE || 'N/A'}</span>
         </div>
         {children}
       </body>
