@@ -16,17 +16,13 @@ window.OSPSearch = {
 
     // Determine the API URL internally so the caller doesn't have to
     let apiUrl = '/scraper/api/search';
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      apiUrl = 'http://localhost:3000/scraper/api/search';
-    } else {
-      // Assuming a bundler or environment injects process.env here for production
-      try {
-        if (typeof process !== 'undefined' && process.env.SEARCH_API_URL) {
-          apiUrl = process.env.SEARCH_API_URL;
-        }
-      } catch (e) {
-        // Fallback if process is not defined in pure browser environment
+    // The environment injects process.env.SEARCH_API_URL
+    try {
+      if (typeof process !== 'undefined' && process.env.SEARCH_API_URL) {
+        apiUrl = process.env.SEARCH_API_URL;
       }
+    } catch (e) {
+      // Fallback if process is not defined in pure browser environment
     }
 
     try {
