@@ -61,33 +61,5 @@ document.addEventListener('click', function(e) {
     fs.writeFileSync(indexPath, html);
   }
 
-  // Git Auto-Push
-  try {
-    if (process.env.PAT) {
-      console.log(`PAT detected, pushing via GitHub API...`);
-      const { commitAndPushDirectory } = await import('@/lib/github');
-      const repoOwner = process.env.GITHUB_REPO_OWNER || 'Search-Sensei';
-      const repoName = process.env.GITHUB_REPO_NAME || 'osp-website-scraper';
-      const basePathInRepo = `public/sites/${replicationId}`;
-      await commitAndPushDirectory(
-        repoOwner,
-        repoName,
-        basePathInRepo,
-        outputDir,
-        `feat: auto-clone site for ${replicationId}`
-      );
-      console.log(`Successfully pushed ${replicationId} via GitHub API.`);
-    } else {
-      console.log(`No PAT, falling back to local Git command...`);
-      const { execSync } = require('child_process');
-      execSync(`git add -f public/sites/${replicationId}`, { stdio: 'inherit' });
-      execSync(`git commit -m "Auto-cloned site: ${replicationId}"`, { stdio: 'inherit' });
-      execSync(`git push origin main`, { stdio: 'inherit' });
-      console.log(`Successfully pushed ${replicationId} to local git.`);
-    }
-  } catch (err) {
-    console.warn(`Git auto-push failed. See logs above. Error:`, err);
-  }
-
   return `/sites/${replicationId}/index.html`;
 }

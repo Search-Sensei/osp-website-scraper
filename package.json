@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "migrate": "flyway migrate",
-    "dev": "npm run migrate && next dev",
+    "dev": "next dev",
+    "clone": "tsx scripts/clone.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
