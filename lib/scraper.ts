@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-export async function runScraper(replicationId: string, url: string, adapterConfig?: any): Promise<string> {
+export async function runScraper(replicationId: string, url: string): Promise<string> {
   // @ts-ignore
   const scrape = (await import('website-scraper')).default;
   const outputDir = path.join(process.cwd(), 'public', 'sites', replicationId);
@@ -27,22 +27,12 @@ export async function runScraper(replicationId: string, url: string, adapterConf
     let html = fs.readFileSync(indexPath, 'utf-8');
     
     let initScript = '';
-    if (adapterConfig && adapterConfig.search_form_selector) {
-      const configObj = {
-        apiUrl: '/scraper/api/search',
-        formSelector: adapterConfig.search_form_selector,
-        inputSelector: adapterConfig.search_input_selector,
-        rowSelector: adapterConfig.result_row_selector,
-        titleSelector: adapterConfig.result_title_selector,
-        detailSelector: adapterConfig.result_detail_selector,
-        urlSelector: adapterConfig.result_url_selector
-      };
       
       initScript = `\n<script>
 (function() {
   const init = () => {
-    if (window.OSPSearch && window.OSPSearch.attachTemplateAdapter) {
-      window.OSPSearch.attachTemplateAdapter(${JSON.stringify(configObj)});
+    if (window.OSPSearch && window.OSPSearch.attachFixedAdapter) {
+      window.OSPSearch.attachFixedAdapter({ apiUrl: "/scraper/api/search" });
     } else {
       console.error("OSPSearch not loaded!");
     }
@@ -54,7 +44,6 @@ export async function runScraper(replicationId: string, url: string, adapterConf
   }
 })();
 </script>`;
-    }
 
     const commonScript = `<script src="/scraper/assets/osp-search.js"></script>${initScript}
 <script>
@@ -72,5 +61,17 @@ document.addEventListener('click', function(e) {
     fs.writeFileSync(indexPath, html);
   }
   
+  // Local Git Auto-Push
+  try {
+    const { execSync } = require('child_process');
+    console.log(`Auto-pushing ${replicationId} to git...`);
+    execSync(`git add -f public/sites/${replicationId}`, { stdio: 'inherit' });
+    execSync(`git commit -m "Auto-cloned site: ${replicationId}"`, { stdio: 'inherit' });
+    execSync(`git push origin main`, { stdio: 'inherit' });
+    console.log(`Successfully pushed ${replicationId} to git.`);
+  } catch (err) {
+    console.warn(`Git auto-push failed or nothing to commit. See logs above.`);
+  }
+
   return `/sites/${replicationId}/index.html`;
 }

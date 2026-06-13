@@ -6,64 +6,46 @@ import path from 'path';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { 
-      url, 
-      client_name,
-      search_form_selector,
-      search_input_selector,
-      result_row_selector,
-      result_title_selector,
-      result_detail_selector,
-      result_url_selector
-    } = body;
+    const data = await request.json();
+    const { url } = data;
 
-    if (!url || !client_name) {
-      return NextResponse.json({ error: 'Missing required fields: url, client_name' }, { status: 400 });
+    if (!url) {
+      return NextResponse.json({ error: 'Missing required field: url' }, { status: 400 });
     }
 
-    const replicationId = client_name.toLowerCase().replace(/[\s\W]+/g, '_');
-    
-    // Check if site already exists
-    const existing = await query('SELECT id FROM site_replications WHERE id = $1', [replicationId]);
-    if (existing.rows.length > 0) {
-      return NextResponse.json({ error: `Site '${client_name}' has already been cloned. Please use a different name or remove the existing one first.` }, { status: 409 });
+    // Extract domain from URL
+    let domain = '';
+    try {
+      const parsedUrl = new URL(url);
+      domain = parsedUrl.hostname.replace(/^www\./, '');
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid URL provided' }, { status: 400 });
     }
+
+    // Use domain as client name and id
+    const client_name = domain;
+    const replicationId = domain.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+
+    // Remove old site if it exists to allow re-cloning
+    await query('DELETE FROM site_replications WHERE id = $1', [replicationId]);
 
     console.log(`Starting replication for: ${client_name} (${url})`);
 
     // 1. Insert into PostgreSQL as COPYING initially
     await query(
       `INSERT INTO site_replications (
-        id, client_name, source_url, status, 
-        search_form_selector, search_input_selector, result_row_selector,
-        result_title_selector, result_detail_selector, result_url_selector
+        id, client_name, source_url, status
       ) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+       VALUES ($1, $2, $3, $4)`,
       [
-        replicationId, client_name, url, 'COPYING',
-        search_form_selector || null,
-        search_input_selector || null,
-        result_row_selector || null,
-        result_title_selector || null,
-        result_detail_selector || null,
-        result_url_selector || null
+        replicationId, client_name, url, 'COPYING'
       ]
     );
-
-    const adapterConfig = {
-      search_form_selector,
-      search_input_selector,
-      result_row_selector,
-      result_title_selector,
-      result_detail_selector,
-      result_url_selector
-    };
 
     // 2. Start the actual scraping process in the background
     (async () => {
       try {
-        const clonedPath = await runScraper(replicationId, url, adapterConfig);
+        const clonedPath = await runScraper(replicationId, url);
         
         const repoOwner = process.env.GITHUB_REPO_OWNER || 'Search-Sensei';
         const repoName = process.env.GITHUB_REPO_NAME || 'osp-website-scraper';

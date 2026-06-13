@@ -38,90 +38,38 @@ window.OSPSearch = {
   },
 
   /**
-   * Option 2: Site-Specific Adapter Attachment
-   * Automatically wires up the cloned site's native DOM to our Search API.
-   * 
-   * @param {Object} config 
-   * @param {string} config.apiUrl - The full API URL
-   * @param {string} config.formSelector - CSS selector for the search form (to intercept submit)
-   * @param {string} config.inputSelector - CSS selector for the search text input
-   * @param {string} config.resultsContainerSelector - CSS selector for the HTML container where results go
-   * @param {Function} config.renderTemplate - A function that takes a result object {title, detail, url} and returns an HTML string matching the native site's design.
+   * Fixed ID Adapter (Developer Workflow)
+   * The developer must add the following IDs/Classes to their native HTML:
+   * - Trigger (Button/Form): id="osp-search-trigger"
+   * - Input field: id="osp-search-input"
+   * - Result template row: id="osp-search-result-row"
+   * - Title text: class="osp-title"
+   * - Detail text: class="osp-detail"
+   * - URL link: class="osp-url"
    */
-  attachAdapter(config) {
-    const form = document.querySelector(config.formSelector);
-    const input = document.querySelector(config.inputSelector);
-    const container = document.querySelector(config.resultsContainerSelector);
+  attachFixedAdapter(config) {
+    const apiUrl = config.apiUrl || '/scraper/api/search';
+    
+    const triggerEl = document.getElementById('osp-search-trigger');
+    const inputEl = document.getElementById('osp-search-input');
+    const firstRow = document.getElementById('osp-search-result-row');
 
-    if (!form || !input || !container) {
-      console.warn('OSP Search Adapter: Could not find one or more required DOM elements.');
+    if (!triggerEl || !inputEl || !firstRow) {
+      console.warn('OSP Search: Missing required DOM elements for fixed adapter. Ensure osp-search-trigger, osp-search-input, and osp-search-result-row IDs exist in the HTML.');
       return;
     }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const query = input.value;
-      if (!query) return;
-
-      container.innerHTML = '<div style="padding: 20px; text-align: center;">Loading search results...</div>';
-      
-      const results = await this.search(config.apiUrl, query);
-      
-      container.innerHTML = '';
-      
-      if (results.length === 0) {
-        container.innerHTML = '<div style="padding: 20px;">No results found.</div>';
-        return;
-      }
-
-      results.forEach(result => {
-        const html = config.renderTemplate(result);
-        container.insertAdjacentHTML('beforeend', html);
-      });
-    });
-  },
-
-  /**
-   * Option 3: Template-Cloning Adapter
-   * The user defines selectors. We find an existing search result row, clone it, and use it as a template.
-   */
-  attachTemplateAdapter(config) {
-    const { 
-      apiUrl, 
-      formSelector, 
-      inputSelector, 
-      rowSelector, 
-      titleSelector, 
-      detailSelector, 
-      urlSelector 
-    } = config;
-
-    const formOrBtn = document.querySelector(formSelector);
-    const firstRow = document.querySelector(rowSelector);
-    let input = document.querySelector(inputSelector);
-
-    if (formOrBtn) {
-      const inputInsideForm = formOrBtn.querySelector(inputSelector);
-      if (inputInsideForm) {
-        input = inputInsideForm;
-      }
-    }
-
-    if (!formOrBtn || !input || !firstRow) {
-      console.warn('OSP Search: Missing required DOM elements for templating. Check your selectors.', {formOrBtn, input, firstRow});
-      return;
-    }
-
-    // 1. Capture the parent container and clone the first row to act as our master template
     const resultsContainer = firstRow.parentElement;
+    
+    // Clean up IDs from the template so cloned rows don't have duplicate IDs
     const templateNode = firstRow.cloneNode(true);
+    templateNode.removeAttribute('id');
 
     const performSearch = async (e) => {
       e.preventDefault();
-      const query = input.value;
+      const query = inputEl.value;
       if (!query) return;
 
-      // Show loading
       resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center;">Loading search results...</div>';
 
       const results = await window.OSPSearch.search(apiUrl, query);
@@ -137,21 +85,18 @@ window.OSPSearch = {
       results.forEach(result => {
         const rowNode = templateNode.cloneNode(true);
         
-        if (titleSelector) {
-          const titleEl = rowNode.querySelector(titleSelector);
-          if (titleEl) titleEl.textContent = result.title;
-        }
+        const titleEl = rowNode.querySelector('.osp-title');
+        if (titleEl) titleEl.textContent = result.title;
 
-        if (detailSelector) {
-          const detailEl = rowNode.querySelector(detailSelector);
-          if (detailEl) detailEl.textContent = result.detail;
-        }
+        const detailEl = rowNode.querySelector('.osp-detail');
+        if (detailEl) detailEl.textContent = result.detail;
 
-        if (urlSelector) {
-           // If it's an <a> tag, update the href
-           const urlEl = rowNode.querySelector(urlSelector);
-           if (urlEl && urlEl.tagName.toLowerCase() === 'a') {
+        const urlEl = rowNode.querySelector('.osp-url');
+        if (urlEl) {
+           if (urlEl.tagName.toLowerCase() === 'a') {
              urlEl.href = result.url || '#';
+           } else {
+             urlEl.textContent = result.url || '#';
            }
         }
 
@@ -159,14 +104,13 @@ window.OSPSearch = {
       });
     };
 
-    // Bind events based on whether it's a form or a button
-    if (formOrBtn.tagName.toLowerCase() === 'form') {
-      formOrBtn.addEventListener('submit', performSearch);
+    // Bind events
+    if (triggerEl.tagName.toLowerCase() === 'form') {
+      triggerEl.addEventListener('submit', performSearch);
     } else {
-      formOrBtn.addEventListener('click', performSearch);
+      triggerEl.addEventListener('click', performSearch);
       
-      // Also bind Enter key on the input if it's just a button
-      input.addEventListener('keydown', (e) => {
+      inputEl.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           performSearch(e);
         }

@@ -3,32 +3,16 @@ import { useState, useEffect } from 'react';
 
 export default function AddSiteModal({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: () => void, onAdded: () => void }) {
   const [formData, setFormData] = useState({
-    clientName: '',
-    sourceUrl: '',
-    searchFormSelector: '',
-    searchInputSelector: '',
-    resultRowSelector: '',
-    resultTitleSelector: '',
-    resultDetailSelector: '',
-    resultUrlSelector: ''
+    sourceUrl: ''
   });
 
   const [loading, setLoading] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setFormData({
-        clientName: '',
-        sourceUrl: '',
-        searchFormSelector: '',
-        searchInputSelector: '',
-        resultRowSelector: '',
-        resultTitleSelector: '',
-        resultDetailSelector: '',
-        resultUrlSelector: ''
+        sourceUrl: ''
       });
-      setShowAdvanced(false);
     }
   }, [isOpen]);
 
@@ -39,14 +23,7 @@ export default function AddSiteModal({ isOpen, onClose, onAdded }: { isOpen: boo
     setLoading(true);
     try {
       const payload = {
-        client_name: formData.clientName,
-        url: formData.sourceUrl,
-        search_form_selector: formData.searchFormSelector,
-        search_input_selector: formData.searchInputSelector,
-        result_row_selector: formData.resultRowSelector,
-        result_title_selector: formData.resultTitleSelector,
-        result_detail_selector: formData.resultDetailSelector,
-        result_url_selector: formData.resultUrlSelector
+        url: formData.sourceUrl
       };
       
       const res = await fetch('/scraper/api/replications/clone', {
@@ -76,64 +53,11 @@ export default function AddSiteModal({ isOpen, onClose, onAdded }: { isOpen: boo
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Client Name</label>
-            <input required type="text" placeholder="e.g. Community Savings Bank" className="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500" 
-              value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
-          </div>
-          <div>
             <label className="block text-sm font-medium text-gray-700">Source URL</label>
-            <input required type="url" placeholder="https://www.example.com/search" className="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500" 
+            <input required type="url" placeholder="https://www.example.com" className="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500" 
               value={formData.sourceUrl} onChange={e => setFormData({...formData, sourceUrl: e.target.value})} />
+            <p className="text-xs text-gray-500 mt-1">The site will be cloned automatically. Developers can add fixed `osp-*` identifiers to the code later to enable search.</p>
           </div>
-
-          <div className="pt-2 border-t mt-4">
-            <button type="button" onClick={() => setShowAdvanced(!showAdvanced)} className="text-sm font-medium text-blue-600 hover:text-blue-800 focus:outline-none">
-              {showAdvanced ? 'Hide Advanced Mapping Options' : 'Show Advanced Mapping Options'}
-            </button>
-          </div>
-
-          {showAdvanced && (
-            <div className="space-y-3 bg-gray-50 p-4 rounded border text-sm">
-              <p className="text-gray-500 mb-2">Define CSS selectors from the target site to automatically map the Search API into their DOM.</p>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700">Search Form/Button</label>
-                  <input type="text" placeholder="e.g. #search-form" className="mt-1 block w-full border border-gray-300 rounded p-1.5 focus:ring-blue-500 focus:border-blue-500" 
-                    value={formData.searchFormSelector} onChange={e => setFormData({...formData, searchFormSelector: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700">Search Input Field</label>
-                  <input type="text" placeholder="e.g. input[name='q']" className="mt-1 block w-full border border-gray-300 rounded p-1.5 focus:ring-blue-500 focus:border-blue-500" 
-                    value={formData.searchInputSelector} onChange={e => setFormData({...formData, searchInputSelector: e.target.value})} />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700">Result Row Container (The element to clone as a template)</label>
-                <input type="text" placeholder="e.g. .search-result-item" className="mt-1 block w-full border border-gray-300 rounded p-1.5 focus:ring-blue-500 focus:border-blue-500" 
-                  value={formData.resultRowSelector} onChange={e => setFormData({...formData, resultRowSelector: e.target.value})} />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700">Title Selector</label>
-                  <input type="text" placeholder="e.g. h3.title" className="mt-1 block w-full border border-gray-300 rounded p-1.5 focus:ring-blue-500 focus:border-blue-500" 
-                    value={formData.resultTitleSelector} onChange={e => setFormData({...formData, resultTitleSelector: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700">Detail Selector</label>
-                  <input type="text" placeholder="e.g. p.desc" className="mt-1 block w-full border border-gray-300 rounded p-1.5 focus:ring-blue-500 focus:border-blue-500" 
-                    value={formData.resultDetailSelector} onChange={e => setFormData({...formData, resultDetailSelector: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700">URL Selector (Optional)</label>
-                  <input type="text" placeholder="e.g. a.link" className="mt-1 block w-full border border-gray-300 rounded p-1.5 focus:ring-blue-500 focus:border-blue-500" 
-                    value={formData.resultUrlSelector} onChange={e => setFormData({...formData, resultUrlSelector: e.target.value})} />
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="flex justify-end gap-2 pt-4 border-t mt-6">
             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 border rounded hover:bg-gray-50 text-gray-700">Cancel</button>
