@@ -150,9 +150,13 @@ You must follow these 5 steps in exact order. Do not skip verification steps.
 - **Action:** Review your injected script to ensure it correctly binds to the form.
 - **Human Verification:** STOP execution and explicitly ask the user: "Please run the dashboard, view the local site, and test the search functionality to verify it correctly hits the mock API."
 
-### Step 6: Confirm Testing Result
+### Step 6: Create and Run Automated Playwright Test
+- **Action:** Create a Playwright testing script under `scratch/test-search-<site_name>.js`. The script must launch Chromium in headless mode, navigate to the local site, interact with the search input/form or the appropriate URL query parameters, and verify that the local mock API returns results which are then successfully rendered in the DOM.
+- **Execution:** Run the script using `node scratch/test-search-<site_name>.js` and ensure it completes without errors and logs the updated HTML container.
+
+### Step 7: Confirm Testing Result
 - **Action:** Wait for the user to confirm the mock results rendered correctly inside the native UI template.
 
-### Step 7: Push to Git
+### Step 8: Push to Git
 - **Action:** Once confirmed, run `git add -A`, `git commit -m "feat: clone and configure search for <site>"`, and `git push origin main`.
 - **Completion:** Notify the user that the site integration is completely finished and synced to the repository.
