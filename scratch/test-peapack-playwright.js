@@ -39,10 +39,16 @@ const { chromium } = require('playwright');
     }
   });
 
-  console.log('Navigating directly to search with ?q=Money...');
-  await page.goto('http://localhost:3000/scraper/sites/peapackprivate_com/index.html?q=Money', { waitUntil: 'networkidle' });
+  console.log('Navigating to local peapack site...');
+  await page.goto('http://localhost:3000/scraper/sites/peapackprivate_com/index.html', { waitUntil: 'networkidle' });
+
+  console.log('Typing query "Money" into the "Search Again" box...');
+  await page.locator('#searchResults-search').fill('Money');
   
-  // Wait for our DOM to update the query span
+  console.log('Clicking the Search button...');
+  await page.locator('#searchSubmitButton').click();
+  
+  // Wait for our DOM to update
   await page.waitForTimeout(2000);
 
   // Check if DOM updated
