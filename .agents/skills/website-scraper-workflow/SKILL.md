@@ -70,18 +70,50 @@ You must follow these 5 steps in exact order. Do not skip verification steps.
   };
   
   const originalXhrOpen = XMLHttpRequest.prototype.open;
-  XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-    if (isBlocked(url)) {
-      this.send = () => {
-        Object.defineProperties(this, { readyState: { value: 4 }, status: { value: 200 }, responseText: { value: '{}' } });
-        if (this.onreadystatechange) this.onreadystatechange();
-        if (this.onload) this.onload();
-      };
-      return;
-    }
-    url = rewriteUrl(url);
-    originalXhrOpen.apply(this, [method, url, ...rest]);
+  XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+      if (isBlocked(url)) {
+          console.warn('Blocked native XHR:', url);
+          this.send = () => {
+              Object.defineProperty(this, 'readyState', { value: 4 });
+              Object.defineProperty(this, 'status', { value: 200 });
+              Object.defineProperty(this, 'responseText', { value: '{}' });
+              if (this.onreadystatechange) this.onreadystatechange();
+              if (this.onload) this.onload();
+          };
+          return;
+      }
+      const rewritten = rewriteUrl(url);
+      if (rewritten !== url) {
+          console.log(`Proxying XHR: ${url} -> ${rewritten}`);
+          url = rewritten;
+      }
+      originalXhrOpen.apply(this, [method, url, ...rest]);
   };
+
+  const originalSetAttribute = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (name, value) {
+      if (this.tagName && this.tagName.toLowerCase() === 'iframe' && name === 'src' && typeof value === 'string') {
+          if (value.includes('pagescdn.com') || value.includes('yext.com')) {
+              console.log('Intercepting cross-domain iframe setAttribute:', value);
+              value = '/scraper/api/mock-iframe/[SITE_ID]?url=' + encodeURIComponent(value);
+          }
+      }
+      return originalSetAttribute.call(this, name, value);
+  };
+
+  const iframeDesc = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'src');
+  if (iframeDesc) {
+      Object.defineProperty(HTMLIFrameElement.prototype, 'src', {
+          get: function() { return iframeDesc.get.call(this); },
+          set: function(value) {
+              if (typeof value === 'string' && (value.includes('pagescdn.com') || value.includes('yext.com'))) {
+                  console.log('Intercepting cross-domain iframe property assignment:', value);
+                  value = '/scraper/api/mock-iframe/[SITE_ID]?url=' + encodeURIComponent(value);
+              }
+              return iframeDesc.set.call(this, value);
+          }
+      });
+  }
 
   if (navigator.sendBeacon) {
     const originalSendBeacon = navigator.sendBeacon;
