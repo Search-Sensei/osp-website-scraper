@@ -39,11 +39,20 @@ export async function runScraper(replicationId: string, url: string, adapterConf
       };
       
       initScript = `\n<script>
-window.addEventListener('DOMContentLoaded', () => {
-  if (window.OSPSearch && window.OSPSearch.attachTemplateAdapter) {
-    window.OSPSearch.attachTemplateAdapter(${JSON.stringify(configObj)});
+(function() {
+  const init = () => {
+    if (window.OSPSearch && window.OSPSearch.attachTemplateAdapter) {
+      window.OSPSearch.attachTemplateAdapter(${JSON.stringify(configObj)});
+    } else {
+      console.error("OSPSearch not loaded!");
+    }
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
-});
+})();
 </script>`;
     }
 
