@@ -36,7 +36,7 @@ You must follow these 5 steps in exact order. Do not skip verification steps.
   // --- Network Interceptor ---
   // Reverse Proxy Configuration
   const proxyConfig = [
-    { match: 'yext.com', endpoint: '/api/mock-search' } // <-- Add other vendors (e.g. algolia) here!
+    { match: 'yext.com', endpoint: '/api/mock-search/<site_name>' } // <-- Add other vendors (e.g. algolia) here!
   ];
 
   // Block unwanted telemetry, ads, and original backend calls
