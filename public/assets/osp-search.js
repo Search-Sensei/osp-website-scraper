@@ -8,12 +8,26 @@
 window.OSPSearch = {
   /**
    * Call the OSP Search API
-   * @param {string} apiUrl - The full API URL
    * @param {string} query - The search query
    * @returns {Promise<Array>} - Array of result objects
    */
-  async search(apiUrl, query) {
-    if (!apiUrl || !query) return [];
+  async search(query) {
+    if (!query) return [];
+
+    // Determine the API URL internally so the caller doesn't have to
+    let apiUrl = '/scraper/api/search';
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      apiUrl = 'http://localhost:3000/scraper/api/search';
+    } else {
+      // Assuming a bundler or environment injects process.env here for production
+      try {
+        if (typeof process !== 'undefined' && process.env.SEARCH_API_URL) {
+          apiUrl = process.env.SEARCH_API_URL;
+        }
+      } catch (e) {
+        // Fallback if process is not defined in pure browser environment
+      }
+    }
 
     try {
       const response = await fetch(`${apiUrl}?q=${encodeURIComponent(query)}`, {

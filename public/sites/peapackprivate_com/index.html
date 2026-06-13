@@ -1021,13 +1021,8 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
         container.innerHTML = '<div style="padding: 20px; text-align: center;">Loading search results...</div>';
 
-        // Set API URL (Production URL should be pulled from .env during integration)
-        const apiUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-          ? 'http://localhost:3000/scraper/api/search' 
-          : 'https://api.production-domain.com/search';
-
         // Fetch results from mock API
-        const results = await window.OSPSearch.search(apiUrl, query);
+        const results = await window.OSPSearch.search(query);
 
         // Clear loading state
         container.innerHTML = '';
