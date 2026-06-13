@@ -38,6 +38,8 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_APP_VERSION=v${{ github.run_number }}
 
       - name: Copy docker-compose and flyway to VM
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
