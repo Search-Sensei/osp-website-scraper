@@ -44,14 +44,14 @@ jobs:
             NEXT_PUBLIC_APP_VERSION=v${{ github.run_number }}
             NEXT_PUBLIC_DEPLOY_DATE=${{ env.DEPLOY_DATE }}
 
-      - name: Copy docker-compose and flyway to VM
+      - name: Copy docker-compose to VM
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VM_HOST }}
           username: KeyCloakAdmin
           key: ${{ secrets.VM_SSH_KEY }}
-          source: "docker-compose.yml,public/sites"
+          source: "docker-compose.yml"
           target: "/home/KeyCloakAdmin/osp-scraper"
 
       - name: Deploy to VM via SSH
