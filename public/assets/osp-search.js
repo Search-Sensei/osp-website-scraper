@@ -96,12 +96,12 @@ window.OSPSearch = {
       urlSelector 
     } = config;
 
-    const form = document.querySelector(formSelector);
+    const formOrBtn = document.querySelector(formSelector);
     const input = document.querySelector(inputSelector);
     const firstRow = document.querySelector(rowSelector);
 
-    if (!form || !input || !firstRow) {
-      console.warn('OSP Search: Missing required DOM elements for templating. Check your selectors.', {form, input, firstRow});
+    if (!formOrBtn || !input || !firstRow) {
+      console.warn('OSP Search: Missing required DOM elements for templating. Check your selectors.', {formOrBtn, input, firstRow});
       return;
     }
 
@@ -109,7 +109,7 @@ window.OSPSearch = {
     const resultsContainer = firstRow.parentElement;
     const templateNode = firstRow.cloneNode(true);
 
-    form.addEventListener('submit', async (e) => {
+    const performSearch = async (e) => {
       e.preventDefault();
       const query = input.value;
       if (!query) return;
@@ -117,7 +117,7 @@ window.OSPSearch = {
       // Show loading
       resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center;">Loading search results...</div>';
 
-      const results = await this.search(apiUrl, query);
+      const results = await window.OSPSearch.search(apiUrl, query);
       
       resultsContainer.innerHTML = ''; // Clear container
 
@@ -150,7 +150,21 @@ window.OSPSearch = {
 
         resultsContainer.appendChild(rowNode);
       });
-    });
+    };
+
+    // Bind events based on whether it's a form or a button
+    if (formOrBtn.tagName.toLowerCase() === 'form') {
+      formOrBtn.addEventListener('submit', performSearch);
+    } else {
+      formOrBtn.addEventListener('click', performSearch);
+      
+      // Also bind Enter key on the input if it's just a button
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          performSearch(e);
+        }
+      });
+    }
   }
 };
 
