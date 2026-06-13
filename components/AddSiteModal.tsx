@@ -29,7 +29,7 @@ export default function AddSiteModal({ isOpen, onClose, onAdded }: { isOpen: boo
         url: formData.sourceUrl
       };
       
-      const res = await fetch('/api/replications/clone', {
+      const res = await fetch('/scraper/api/replications/clone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
