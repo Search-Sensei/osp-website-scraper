@@ -26,7 +26,8 @@ const ALL_MOCK_RESULTS = Array.from({ length: 100 }).map((_, i) => {
   
   return {
     title: `${action} ${adj} ${noun} ${i + 1}`,
-    detail: detailTpl.replace('{type}', type)
+    detail: detailTpl.replace('{type}', type),
+    url: `/products/${type}/${adj.toLowerCase()}-${noun.toLowerCase()}`
   };
 });
 
