@@ -21,45 +21,7 @@ export async function runScraper(replicationId: string, url: string): Promise<st
   // Download the site and assets
   await scrape(options);
 
-  // Inject our common search javascript into the downloaded index.html
-  const indexPath = path.join(outputDir, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    let html = fs.readFileSync(indexPath, 'utf-8');
-
-    let initScript = '';
-
-    initScript = `\n<script>
-(function() {
-  const init = () => {
-    if (window.OSPSearch && window.OSPSearch.attachFixedAdapter) {
-      window.OSPSearch.attachFixedAdapter({ apiUrl: "/scraper/api/search" });
-    } else {
-      console.error("OSPSearch not loaded!");
-    }
-  };
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
-</script>`;
-
-    const commonScript = `<script src="/scraper/assets/osp-search.js"></script>${initScript}
-<script>
-// Block navigation to other pages but keep JS clicks (like menus) working
-document.addEventListener('click', function(e) {
-  const anchor = e.target.closest('a');
-  if (!anchor) return;
-  const href = anchor.getAttribute('href');
-  if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
-  e.preventDefault();
-  console.log('Navigation blocked to prevent leaving the preview mode:', href);
-});
-</script>`;
-    html = html.replace(/<\/body>/i, `${commonScript}</body>`);
-    fs.writeFileSync(indexPath, html);
-  }
+  // Do not modify or inject any custom JS scripts. The developer will handle this manually.
 
   return `/sites/${replicationId}/index.html`;
 }
