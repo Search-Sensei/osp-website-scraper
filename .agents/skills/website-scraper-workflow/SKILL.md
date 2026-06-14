@@ -11,14 +11,24 @@ Use this skill whenever you are tasked with adding a new site to the OSP Search 
 You must follow these 5 steps in exact order. Do not skip verification steps.
 
 ### Step 1: Clone the Website
-- **Action:** Open a terminal in the `osp-website-scraper` repository.
-- **Command:** Run `npm run clone -- "<URL>"` where `<URL>` is the website provided by the user.
-- **Wait:** Ensure the Puppeteer script finishes downloading the completely rendered HTML and exits with success.
+1. **Analyze the Target URL**
+   - Identify the main domain/brand (e.g., `peapackprivate.com` -> `peapackprivate_com`).
+   - Use the URL to determine the site context and the expected outcome.
+
+2. **Ask about Iframes**
+   - IMPORTANT: Before cloning, explicitly ask the user: "Does this site use an iframe to load search results or core content?"
+   - If yes, ensure the scraper waits for the iframe content to fully render (the underlying script handles inlining iframe content automatically if configured).
+
+3. **Run the Scraper**
+   - Execute the site clone command using `npm run clone -- <URL> <ReplicationID>`.
+   - The script will automatically wait for dynamically loaded DOMs (including 15 seconds for single-page applications) and inline iframe contents into the main `index.html`.
+   - Verify the clone by checking `public/sites/<ReplicationID>/index.html`.
 
 ### Step 2: Identify Architecture & Original Backends
 - **Action:** STOP execution and explicitly ask the user two questions:
   1. "Is the original site using Client-Side Rendering (CSR/Iframe) or Server-Side Rendering (SSR) for its search experience?"
   2. "Could you please provide the original backend domains, telemetry endpoints, or search provider names (e.g., `search.domain.com`, `bam.nr-data.net`, `yext`, `algolia`)? This will help me safely remove them."
+  3. "Does this site use an iframe to load search results? If so, we need to wait for the iframe to load during the copy process."
 - **Wait:** Wait for the user's response before proceeding.
 
 ### Step 3: Strip Backend, Ads, and Telemetry Scripts
@@ -27,7 +37,8 @@ You must follow these 5 steps in exact order. Do not skip verification steps.
 - **Search & Remove Scripts:** Using the domains and names provided by the user, find and completely delete any `<script>` tags that load the original search provider. 
 - **Aggressive Ad/Telemetry Removal:** Search for and aggressively delete ALL `<script>` and `<iframe>` tags related to ads, trackers, and telemetry. Look for keywords like `google-analytics`, `googletagmanager`, `doubleclick`, `facebook`, `fbevents`, `qualtrics`, `celebrus`, etc. Wipe them out completely.
 - **Search & Remove Iframes:** Also find and remove any `<iframe src="...">` that points to the provided backend domains, leaving just its empty container `div`. 
-- **Why:** This is crucial to prevent the original backend from being called, to stop tracking pixels from firing, and to ensure our demo is clean, fast, and secure.
+- **Neutralize Navigation Links:** To prevent users from accidentally navigating away from the local proxy, replace the `href` attributes of all static `<a>` and `<bolt-button>` tags with `href="javascript:void(0)"`. Ensure this does not interfere with dynamic search results injected later.
+- **Why:** This is crucial to prevent the original backend from being called, to stop tracking pixels from firing, and to ensure our demo is clean, fast, secure, and isolated from external navigation.
 
 ### Step 4: Inject API Interceptor
 - **Locate HTML:** Find the downloaded `index.html` (e.g., `public/sites/<domain>/index.html`).

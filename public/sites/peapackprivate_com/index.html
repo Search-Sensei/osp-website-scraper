@@ -43,6 +43,20 @@
         const querySpans = document.querySelectorAll('.search-query');
         querySpans.forEach(span => span.textContent = query);
 
+        // Show loading spinner
+        const container = document.querySelector('.search-container');
+        if (container) {
+          container.innerHTML = `
+            <div style="padding: 40px; text-align: center;">
+                <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #0056b3; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <div style="margin-top: 15px; font-size: 16px; color: #666;">Loading search results...</div>
+                <style>
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                </style>
+            </div>
+          `;
+        }
+
         // Fetch mock data
         try {
           const res = await originalFetch('/scraper/api/mock-search/peapackprivate_com/search?q=' + encodeURIComponent(query));
@@ -55,7 +69,7 @@
               const div = document.createElement('div');
               div.className = 'search-item mb-4 pb-2 border-bottom'; // Add some basic styling classes to mimic search results
               div.innerHTML = `
-                <a href="${item.url}" class="search-link h4 text-primary d-block mb-1">
+                <a href="javascript:void(0)" class="search-link h4 text-primary d-block mb-1">
                   <span class="search-title">${item.title}</span>
                 </a>
                 <p class="search-summary mb-0 text-muted">${item.summary}</p>
@@ -160,11 +174,11 @@ Place this snippet between the <head> and </head> tags on every page of your sit
   <div role="navigation">
     <div class="hidden-compliance" id="complianceMenu">
       <ul class="list-unstyled">
-        <li><a href="/">Home</a></li>
-        <li><a href="#main">Skip to main content</a></li>
-        <li><a href="#footer">Skip to footer</a></li>
+        <li><a href="javascript:void(0)">Home</a></li>
+        <li><a href="javascript:void(0)">Skip to main content</a></li>
+        <li><a href="javascript:void(0)">Skip to footer</a></li>
       </ul>
-    </div><a class="hidden-compliance external" href="http://get.adobe.com/reader/"
+    </div><a class="hidden-compliance external" href="javascript:void(0)"
       title="External link to download Acrobat Reader">Download Acrobat Reader 5.0 or higher to view .pdf files.</a>
   </div> <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WJKTFSL" height="0" width="0"
       style="display:none;visibility:hidden"></iframe></noscript>
@@ -197,14 +211,14 @@ Place this snippet between the <head> and </head> tags on every page of your sit
         </div>
         <div class="header__inner d-flex flex-row justify-content-between align-items-center align-content-center">
           <div class="header__left offset-xxl-1"><span><span class="sr-only">Peapack Private Bank &amp; Trust</span> <a
-                href="/" class="logo" title="Peapack Private Bank &amp; Trust, Bedminster, NJ"><span
+                href="javascript:void(0)" class="logo" title="Peapack Private Bank &amp; Trust, Bedminster, NJ"><span
                   class="logotype"><img src="fonts/PPG-Logo.svg"
                     alt="Peapack Private Bank &amp; Trust"></span></a></span></div>
           <div class="header__right d-flex justify-content-md-end align-items-center">
             <nav class="navbar" aria-label="Primary">
               <div class="collapse navbar-collapse" id="navbar-collapse">
                 <div class="navbar-header d-flex justify-content-between align-items-center">
-                  <div class="navbar-logo" aria-hidden="true"><a href="/"
+                  <div class="navbar-logo" aria-hidden="true"><a href="javascript:void(0)"
                       title="Peapack Private Bank &amp; Trust, Bedminster, NJ"><img src="fonts/PPG-Logo-Small.svg"
                         alt="Peapack Private Bank &amp; Trust Navigation Logo"></a></div><button
                     class="navbar__closer d-block" data-toggle="collapse" data-target="#navbar-collapse"><span
@@ -216,23 +230,23 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                       Management</span>
                     <ul class="dropdown-menu">
                       <li class="menu-internal">
-                        <a href="/insights">Insights</a>
+                        <a href="javascript:void(0)">Insights</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/family-office-services">Family Office Services</a>
+                        <a href="javascript:void(0)">Family Office Services</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/financial-planning">Financial Planning</a>
+                        <a href="javascript:void(0)">Financial Planning</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/wealth-management/investment-management">Investment Management</a>
+                        <a href="javascript:void(0)">Investment Management</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/trust-estate-and-tax-services">Trust, Estate and Tax Services</a>
+                        <a href="javascript:void(0)">Trust, Estate and Tax Services</a>
 
                       </li>
                     </ul>
@@ -245,28 +259,28 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                           Solutions</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/commercial/checking-and-saving-solutions/cds">CDs</a>
+                            <a href="javascript:void(0)">CDs</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/checking-and-saving-solutions/checking">Checking</a>
+                            <a href="javascript:void(0)">Checking</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/insured-liquidity-sweep">Insured Liquidity Sweep</a>
+                            <a href="javascript:void(0)">Insured Liquidity Sweep</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/checking-and-saving-solutions/money-market-accounts">Money Market
+                            <a href="javascript:void(0)">Money Market
                               Accounts</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/rates">Deposit Rates</a>
+                            <a href="javascript:void(0)">Deposit Rates</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/savings">Savings</a>
+                            <a href="javascript:void(0)">Savings</a>
 
                           </li>
                         </ul>
@@ -275,11 +289,11 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                         <span role="button" aria-expanded="false" class="group-item" tabindex="0">Credit Cards</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/commercial/find-the-right-card">Credit Cards</a>
+                            <a href="javascript:void(0)">Credit Cards</a>
 
                           </li>
                           <li class="menu-external">
-                            <a href="https://www.myaccountaccess.com/onlineCard/login.do?theme=elan1&amp;loc=25902"
+                            <a href="javascript:void(0)"
                               target="_blank">Account Access</a>
 
                           </li>
@@ -290,19 +304,19 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                           Solutions</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/bill-pay">Bill Pay</a>
+                            <a href="javascript:void(0)">Bill Pay</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/online-banking">Online Banking</a>
+                            <a href="javascript:void(0)">Online Banking</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/personal/digital-solutions/mobile-banking">Mobile Banking</a>
+                            <a href="javascript:void(0)">Mobile Banking</a>
 
                           </li>
                           <li class="menu-external">
-                            <a href="https://www04.timetrade.com/app/peapack/workflows/PEAPACK-CLPA/schedule?campaignId=clients"
+                            <a href="javascript:void(0)"
                               target="_blank">Schedule an Appointment</a>
 
                           </li>
@@ -313,7 +327,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                           Banking</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/investment-banking">Investment Banking Solutions</a>
+                            <a href="javascript:void(0)">Investment Banking Solutions</a>
 
                           </li>
                         </ul>
@@ -323,25 +337,25 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                           Solutions</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/commercial/lending-solutions/commercial-and-industrial-lending">Commercial and
+                            <a href="javascript:void(0)">Commercial and
                               Industrial Lending</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/lending-solutions/commercial-real-estate">Commercial Real Estate</a>
+                            <a href="javascript:void(0)">Commercial Real Estate</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/lending-solutions/equipment-financing-and-leasing">Equipment Financing
+                            <a href="javascript:void(0)">Equipment Financing
                               and Leasing</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/professional-services">Professional Services</a>
+                            <a href="javascript:void(0)">Professional Services</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/lending-solutions/small-business-lending">Small Business Lending</a>
+                            <a href="javascript:void(0)">Small Business Lending</a>
 
                           </li>
                         </ul>
@@ -351,28 +365,28 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                           Management</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/commercial/treasury-management/collection-solutions">Collection Solutions</a>
+                            <a href="javascript:void(0)">Collection Solutions</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/treasury-management/fraud-protection">Fraud Protection</a>
+                            <a href="javascript:void(0)">Fraud Protection</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/treasury-management/liquidity-and-management-solutions">Liquidity and
+                            <a href="javascript:void(0)">Liquidity and
                               Management Solutions</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/treasury-management/payment-solutions">Payment Solutions</a>
+                            <a href="javascript:void(0)">Payment Solutions</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/treasury-management/myescrow">MyEscrow</a>
+                            <a href="javascript:void(0)">MyEscrow</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/commercial/treasury-management/treasury-connect">Treasury Connect</a>
+                            <a href="javascript:void(0)">Treasury Connect</a>
 
                           </li>
                         </ul>
@@ -387,7 +401,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                           Services</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/personal/brokerage-services/peapack-financial-services">Peapack Financial
+                            <a href="javascript:void(0)">Peapack Financial
                               Services</a>
 
                           </li>
@@ -398,32 +412,32 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                           Solutions</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/personal/checking-and-saving-solutions/cds">CDs</a>
+                            <a href="javascript:void(0)">CDs</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/personal/checking-solutions">Checking</a>
+                            <a href="javascript:void(0)">Checking</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/insured-liquidity-sweep">Insured Liquidity Sweep</a>
+                            <a href="javascript:void(0)">Insured Liquidity Sweep</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/personal/checking-and-saving-solutions/iras">IRAs</a>
+                            <a href="javascript:void(0)">IRAs</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/personal/checking-and-saving-solutions/money-market-accounts">Money Market
+                            <a href="javascript:void(0)">Money Market
                               Accounts</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/rates">Deposit Rates</a>
+                            <a href="javascript:void(0)">Deposit Rates</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/personal/checking-and-saving-solutions/savings">Savings</a>
+                            <a href="javascript:void(0)">Savings</a>
 
                           </li>
                         </ul>
@@ -432,11 +446,11 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                         <span role="button" aria-expanded="false" class="group-item" tabindex="0">Credit Cards</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/credit-cards/find-the-right-card">Find the Right Card</a>
+                            <a href="javascript:void(0)">Find the Right Card</a>
 
                           </li>
                           <li class="menu-external">
-                            <a href="https://www.myaccountaccess.com/onlineCard/login.do?theme=elan1&amp;loc=25902"
+                            <a href="javascript:void(0)"
                               target="_blank">Account Access</a>
 
                           </li>
@@ -447,24 +461,24 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                           Solutions</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/bill-pay">Bill Pay</a>
+                            <a href="javascript:void(0)">Bill Pay</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/online-banking">Online Banking</a>
+                            <a href="javascript:void(0)">Online Banking</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/personal/digital-solutions/mobile-banking">Mobile Banking</a>
+                            <a href="javascript:void(0)">Mobile Banking</a>
 
                           </li>
                           <li class="menu-external">
-                            <a href="https://www04.timetrade.com/app/peapack/workflows/PEAPACK-CLPA/schedule?campaignId=clients"
+                            <a href="javascript:void(0)"
                               target="_blank">Schedule an Appointment</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/zelle">Zelle®</a>
+                            <a href="javascript:void(0)">Zelle®</a>
 
                           </li>
                         </ul>
@@ -474,19 +488,19 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                           Solutions</span>
                         <ul class="dropdown-menu">
                           <li class="menu-internal">
-                            <a href="/personal/lending-solutions/mortgage-solutions">Mortgage Solutions</a>
+                            <a href="javascript:void(0)">Mortgage Solutions</a>
 
                           </li>
                           <li class="menu-external">
-                            <a href="https://mymortgage.peapackprivate.com/">Apply for a Mortgage</a>
+                            <a href="javascript:void(0)">Apply for a Mortgage</a>
 
                           </li>
                           <li class="menu-internal">
-                            <a href="/personal/lending-solutions/home-equity">Home Equity Line of Credit</a>
+                            <a href="javascript:void(0)">Home Equity Line of Credit</a>
 
                           </li>
                           <li class="menu-external">
-                            <a href="https://mymortgage.peapackprivate.com/" target="_blank">Apply for a Home Equity
+                            <a href="javascript:void(0)" target="_blank">Apply for a Home Equity
                               Line of Credit</a>
 
                           </li>
@@ -499,19 +513,19 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                       News</span>
                     <ul class="dropdown-menu">
                       <li class="menu-internal">
-                        <a href="/company-news">Company News</a>
+                        <a href="javascript:void(0)">Company News</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/calculators">Financial Calculators</a>
+                        <a href="javascript:void(0)">Financial Calculators</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/videos">Videos</a>
+                        <a href="javascript:void(0)">Videos</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/resources-and-news/webinars">Webinars</a>
+                        <a href="javascript:void(0)">Webinars</a>
 
                       </li>
                     </ul>
@@ -520,46 +534,46 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                     <span role="button" aria-expanded="false" class="category-item" tabindex="0">About Us</span>
                     <ul class="dropdown-menu">
                       <li class="menu-external">
-                        <a href="https://2025annualreport.peapackprivate.com/" target="_blank">Annual Report</a>
+                        <a href="javascript:void(0)" target="_blank">Annual Report</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/careers">Careers</a>
+                        <a href="javascript:void(0)">Careers</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/about-us/contact-us">Contact Us</a>
+                        <a href="javascript:void(0)">Contact Us</a>
 
                       </li>
                       <li class="menu-external">
-                        <a href="https://pgbank.q4ir.com/corporate-information/corporate-profile/default.aspx"
+                        <a href="javascript:void(0)"
                           target="_blank">Investor Relations</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/about-us/locations">Locations</a>
+                        <a href="javascript:void(0)">Locations</a>
 
                       </li>
                       <li class="menu-external">
-                        <a href="https://2025annualreport.peapackprivate.com/testimonials.html" target="_blank">Our
+                        <a href="javascript:void(0)" target="_blank">Our
                           Clients</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/about-us/our-community">Our Community</a>
+                        <a href="javascript:void(0)">Our Community</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/about-us/our-people">Our People</a>
+                        <a href="javascript:void(0)">Our People</a>
 
                       </li>
                       <li class="menu-internal">
-                        <a href="/about-us/our-story">Our Story</a>
+                        <a href="javascript:void(0)">Our Story</a>
 
                       </li>
                       <li class="menu-external">
                         <a
-                          href="https://www04.timetrade.com/app/peapack/workflows/PEAPACK-CLPA/schedule/location?wfsid=007btensvhtt5nk56ige4ukh52cduh0r&amp;campaignId=clients&amp;fs=1">Schedule
+                          href="javascript:void(0)">Schedule
                           an Appointment</a>
 
                       </li>
@@ -632,14 +646,14 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                             autocorrect="off" autocapitalize="off" required=""></div>
                         <div class="olb__links d-flex justify-content-start align-items-center mt-4 mb-2"><input
                             type="submit" class="btn btn-primary mr-3" value="Continue">
-                          <div><a href="https://secure.peapackprivate.com/enroll" title="Enroll"
-                              target="_blank">Enroll</a><br><a href="https://secure.peapackprivate.com/forgot"
+                          <div><a href="javascript:void(0)" title="Enroll"
+                              target="_blank">Enroll</a><br><a href="javascript:void(0)"
                               title="Forgot Password?" target="_blank">Forgot Password</a></div>
                         </div>
                       </form>
                     </div>
                     <div class="estatements-personal">
-                      <div class="mt-3"><a href="https://estatements.pa.printmailsystems.com/peapackprivate/login.asp"
+                      <div class="mt-3"><a href="javascript:void(0)"
                           title="Login to eStatements (Personal)" class="btn btn-primary" target="_blank">Login to
                           eStatements</a></div>
                     </div>
@@ -664,20 +678,20 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                     </select>
                     <div class="cash-management">
                       <div class="mt-3"><a
-                          href="https://www.netteller.com/login2008/Authentication/Views/Login.aspx?returnUrl=%2fpgbank"
+                          href="javascript:void(0)"
                           title="Login to Cash Management" class="btn btn-primary" target="_blank">Login to Cash
                           Management</a></div>
                     </div>
                     <div class="treasury-connect">
-                      <div class="mt-3"><a href="http://tm.peapackprivate.com/" title="Login to Treasury Connect"
+                      <div class="mt-3"><a href="javascript:void(0)" title="Login to Treasury Connect"
                           class="btn btn-primary" target="_blank">Login to Treasury Connect</a></div>
                     </div>
                     <div class="my-escrow">
-                      <div class="mt-3"><a href="https://escrow.peapackprivate.com/" title="Login to MyEscrow"
+                      <div class="mt-3"><a href="javascript:void(0)" title="Login to MyEscrow"
                           class="btn btn-primary" target="_blank">Login to MyEscrow</a></div>
                     </div>
                     <div class="estatements-business">
-                      <div class="mt-3"><a href="https://estatements.pa.printmailsystems.com/peapackprivate/login.asp"
+                      <div class="mt-3"><a href="javascript:void(0)"
                           title="Login to eStatements (Business)" class="btn btn-primary" target="_blank">Login to
                           eStatements</a></div>
                     </div>
@@ -694,11 +708,11 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                 data-parent="#olb__selector">
                 <div class="card-body">
                   <div class="inner-login">
-                    <div class="text-center"><a href="http://pgbank.cconnect.com/"
+                    <div class="text-center"><a href="javascript:void(0)"
                         title="Login to Wealth Management Client Access" class="btn btn-primary w-100"
                         target="_blank">Wealth Management</a></div>
                     <div class="text-center pt-2"><a
-                        href="https://pgbank.portal.tamaracinc.com/Login.aspx?ReturnUrl=%2f"
+                        href="javascript:void(0)"
                         title="Login to Private Client Portal" class="btn btn-primary w-100" target="_blank">Private
                         Client Portal</a></div>
                   </div>
@@ -725,7 +739,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                 <div class="col-xl-10 offset-xl-1">
                   <h1 class="page-title">Search</h1>
                   <ul class="breadcrumb" aria-label="Breadcrumb">
-                    <li role="presentation"><a href="/">Home</a></li>
+                    <li role="presentation"><a href="javascript:void(0)">Home</a></li>
                     <li role="presentation" class="remove-blank"></li>
                     <li class="remove-blank">Search</li>
                   </ul>
@@ -762,7 +776,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                 <section class="search-container">
                   <!-- 
                   <div class="search-item">
-                    <a href="/credit-cards/find-the-right-card" class="search-link">
+                    <a href="javascript:void(0)" class="search-link">
                       <span class="search-title">Find the Right Card</span>
                     </a>
                     <p class="search-summary"> down balances faster, maximize cash <b>back</b>, earn rewards or begin
@@ -786,25 +800,25 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                 <span role="button" aria-expanded="false" class="category-item" tabindex="0">Connect</span>
                 <ul class="dropdown-menu">
                   <li class="menu-internal">
-                    <a href="/careers">Careers</a>
+                    <a href="javascript:void(0)">Careers</a>
 
                   </li>
                   <li class="menu-internal">
-                    <a href="/about-us/contact-us">Contact Us</a>
+                    <a href="javascript:void(0)">Contact Us</a>
 
                   </li>
                   <li class="menu-internal">
-                    <a href="/about-us/locations">Locations</a>
+                    <a href="javascript:void(0)">Locations</a>
 
                   </li>
                   <li class="menu-external">
                     <a
-                      href="https://www04.timetrade.com/app/peapack/workflows/PEAPACK-CLPA/schedule/location?wfsid=ncd9nsgdeii3ouvl2clel8ji7st0o868&amp;campaignId=clients&amp;fs=1">Schedule
+                      href="javascript:void(0)">Schedule
                       an Appointment</a>
 
                   </li>
                   <li class="menu-internal">
-                    <a href="/subscribe">Subscribe</a>
+                    <a href="javascript:void(0)">Subscribe</a>
 
                   </li>
                 </ul>
@@ -813,16 +827,16 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                 <span role="button" aria-expanded="false" class="category-item" tabindex="0">Company</span>
                 <ul class="dropdown-menu">
                   <li class="menu-internal">
-                    <a href="/company-news">Company News</a>
+                    <a href="javascript:void(0)">Company News</a>
 
                   </li>
                   <li class="menu-external">
-                    <a href="https://pgbank.q4ir.com/corporate-information/corporate-profile/default.aspx"
+                    <a href="javascript:void(0)"
                       target="_blank">Investor Relations</a>
 
                   </li>
                   <li class="menu-internal">
-                    <a href="/media-inquiries">Media Inquiries</a>
+                    <a href="javascript:void(0)">Media Inquiries</a>
 
                   </li>
                 </ul>
@@ -831,19 +845,19 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                 <span role="button" aria-expanded="false" class="category-item" tabindex="0">Tools</span>
                 <ul class="dropdown-menu">
                   <li class="menu-internal">
-                    <a href="/calculators">Financial Calculators</a>
+                    <a href="javascript:void(0)">Financial Calculators</a>
 
                   </li>
                   <li class="menu-internal">
-                    <a href="/rates">Rates</a>
+                    <a href="javascript:void(0)">Rates</a>
 
                   </li>
                   <li class="menu-internal">
-                    <a href="/videos">Videos</a>
+                    <a href="javascript:void(0)">Videos</a>
 
                   </li>
                   <li class="menu-internal">
-                    <a href="/sitemap">Sitemap</a>
+                    <a href="javascript:void(0)">Sitemap</a>
 
                   </li>
                 </ul>
@@ -852,19 +866,19 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                 <span role="button" aria-expanded="false" class="category-item" tabindex="0">Legal</span>
                 <ul class="dropdown-menu">
                   <li class="menu-internal">
-                    <a href="/diversity-and-inclusion">Diversity and Inclusion</a>
+                    <a href="javascript:void(0)">Diversity and Inclusion</a>
 
                   </li>
                   <li class="menu-internal">
-                    <a href="/enterprise-risk-management">Enterprise Risk Management</a>
+                    <a href="javascript:void(0)">Enterprise Risk Management</a>
 
                   </li>
                   <li class="menu-internal">
-                    <a href="/policies">Policies</a>
+                    <a href="javascript:void(0)">Policies</a>
 
                   </li>
                   <li class="menu-internal">
-                    <a href="/security">Security</a>
+                    <a href="javascript:void(0)">Security</a>
 
                   </li>
                 </ul>
@@ -876,7 +890,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
           </div>
           <div class="footer__disc col-xl-7 sm mt-xl-4">
             <p>Deposit products and related services are offered by Peapack Private Bank &amp; Trust, <a
-                href="https://www.fdic.gov">Member FDIC</a>. <a href="https://www.hud.gov">Equal Housing Lender <span
+                href="javascript:void(0)">Member FDIC</a>. <a href="javascript:void(0)">Equal Housing Lender <span
                   class="icon icon-ehl" aria-hidden="true"></span></a>.</p>
             <p>Non-deposit investment products are not insured by the FDIC; are not deposits or other obligations of, or
               guaranteed by, Peapack Private Bank &amp; Trust; and are subject to investment risks, including possible
@@ -890,10 +904,10 @@ Place this snippet between the <head> and </head> tags on every page of your sit
               <div class="copytext text-center text-md-left pr-md-3 mb-2 mb-md-0">©&nbsp; Peapack Private Bank &amp;
                 Trust <span class="copy-date"></span> All Rights Reserved.</div>
               <div class="linkedin text-center text-md-left pr-lg-3 mb-3 mb-md-0"><a
-                  href="https://www.linkedin.com/company/peapack-private" title="LinkedIn">LinkedIn</a></div>
+                  href="javascript:void(0)" title="LinkedIn">LinkedIn</a></div>
             </div>
             <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center">
-              <div class="jha mb-2 mb-sm-0 pr-sm-3"><a href="https://www.banno.com" class="external"><span
+              <div class="jha mb-2 mb-sm-0 pr-sm-3"><a href="javascript:void(0)" class="external"><span
                     class="icon icon-jha" aria-hidden="true"></span><span class="sr-only">Created by Banno</span></a>
               </div>
               <div id="sentinel-badge" data-theme="dark">
@@ -906,7 +920,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
         </div>
       </div>
     </footer>
-    <section class="accessibility text-center" aria-label="Accessibility Statement"><a href="/ada-compliance"
+    <section class="accessibility text-center" aria-label="Accessibility Statement"><a href="javascript:void(0)"
         class="accessibility-link"><span class="accessibility-text">Read more on our accessibility statement</span></a>
     </section>
     <div class="modal fade modal-full-width" id="emailSignUp" tabindex="-1" role="dialog" aria-hidden="true">
@@ -965,9 +979,9 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
                                 <div class="b-captcha-box b-captcha-audio">
                                   <div class="b-captcha-container">
-                                    <a href="javascript:void(0);" class="b-audio-captcha-play"
+                                    <a href="javascript:void(0)" class="b-audio-captcha-play"
                                       data-disclaimer-id="null">Play Audio</a> <br>
-                                    <a href="javascript:void(0);" class="b-audio-captcha-download" target="_blank"
+                                    <a href="javascript:void(0)" class="b-audio-captcha-download" target="_blank"
                                       data-disclaimer-id="null">Download Audio</a>
                                     <div class="b-captcha-audio-holder"
                                       style="speak:none;max-width:1px;max-height:1px;"></div>
@@ -976,17 +990,17 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                                 </div>
 
                                 <div class="b-captcha-box b-captcha-controls">
-                                  <a href="javascript:void(0);"
+                                  <a href="javascript:void(0)"
                                     class="b-captcha-image b-captcha-switch b-show-audio-captcha"
                                     data-disclaimer-id="null">Audio Captcha</a>
-                                  <a href="javascript:void(0);"
+                                  <a href="javascript:void(0)"
                                     class="b-captcha-image b-captcha-refresh b-new-image-captcha"
                                     data-disclaimer-id="null">Refresh</a>
 
-                                  <a href="javascript:void(0);"
+                                  <a href="javascript:void(0)"
                                     class="b-captcha-audio b-captcha-switch b-show-image-captcha"
                                     data-disclaimer-id="null">Image Captcha</a>
-                                  <a href="javascript:void(0);"
+                                  <a href="javascript:void(0)"
                                     class="b-captcha-audio b-captcha-refresh b-new-audio-captcha"
                                     data-disclaimer-id="null">Refresh</a>
                                 </div>
@@ -1098,7 +1112,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
       const templateString = `
         <div class="search-item">
-          <a href="{{url}}" class="search-link">
+          <a href="javascript:void(0)" class="search-link">
             <span class="search-title">{{title}}</span>
           </a>
           <p class="search-summary">{{detail}}</p>
