@@ -81,8 +81,6 @@ jobs:
             echo "==> Pulling latest scraper image..."
             sudo docker pull "$IMAGE"
 
-            echo "==> Ensuring .env file exists..."
-            touch .env
 
             echo "==> Starting containers with Docker Compose..."
             # Pass variables directly to sudo environment so docker compose picks them up
