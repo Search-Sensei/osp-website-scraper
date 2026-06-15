@@ -9,35 +9,35 @@
 
     const originalFetch = window.fetch;
     window.fetch = async function (...args) {
-        let url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
-        if (isBlocked(url)) {
-            console.warn('Blocked native fetch:', url);
-            return new Response(JSON.stringify({}), { status: 200, headers: { 'Content-Type': 'application/json' } });
-        }
-        return originalFetch.apply(this, args);
+      let url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
+      if (isBlocked(url)) {
+        console.warn('Blocked native fetch:', url);
+        return new Response(JSON.stringify({}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return originalFetch.apply(this, args);
     };
 
     const originalXhrOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-        if (isBlocked(url)) {
-            console.warn('Blocked native XHR:', url);
-            this.send = () => {
-                Object.defineProperty(this, 'readyState', { value: 4 });
-                Object.defineProperty(this, 'status', { value: 200 });
-                Object.defineProperty(this, 'responseText', { value: '{}' });
-                if (this.onreadystatechange) this.onreadystatechange();
-                if (this.onload) this.onload();
-            };
-            return;
-        }
-        originalXhrOpen.apply(this, [method, url, ...rest]);
+      if (isBlocked(url)) {
+        console.warn('Blocked native XHR:', url);
+        this.send = () => {
+          Object.defineProperty(this, 'readyState', { value: 4 });
+          Object.defineProperty(this, 'status', { value: 200 });
+          Object.defineProperty(this, 'responseText', { value: '{}' });
+          if (this.onreadystatechange) this.onreadystatechange();
+          if (this.onload) this.onload();
+        };
+        return;
+      }
+      originalXhrOpen.apply(this, [method, url, ...rest]);
     };
 
     // 2. SSR Form Interceptor Logic
     document.addEventListener('DOMContentLoaded', () => {
       // Find all search forms
       const forms = document.querySelectorAll('form[action="/search"]');
-      
+
       const performSearch = async (query) => {
         // Update query text in UI
         const querySpans = document.querySelectorAll('.search-query');
@@ -61,7 +61,7 @@
         try {
           const res = await originalFetch('/scraper/api/mock-search/peapackprivate_com/search?q=' + encodeURIComponent(query));
           const data = await res.json();
-          
+
           const container = document.querySelector('.search-container');
           if (container && data.results) {
             container.innerHTML = ''; // clear current results
@@ -293,8 +293,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
                           </li>
                           <li class="menu-external">
-                            <a href="javascript:void(0)"
-                              target="_blank">Account Access</a>
+                            <a href="javascript:void(0)" target="_blank">Account Access</a>
 
                           </li>
                         </ul>
@@ -316,8 +315,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
                           </li>
                           <li class="menu-external">
-                            <a href="javascript:void(0)"
-                              target="_blank">Schedule an Appointment</a>
+                            <a href="javascript:void(0)" target="_blank">Schedule an Appointment</a>
 
                           </li>
                         </ul>
@@ -450,8 +448,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
                           </li>
                           <li class="menu-external">
-                            <a href="javascript:void(0)"
-                              target="_blank">Account Access</a>
+                            <a href="javascript:void(0)" target="_blank">Account Access</a>
 
                           </li>
                         </ul>
@@ -473,8 +470,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
                           </li>
                           <li class="menu-external">
-                            <a href="javascript:void(0)"
-                              target="_blank">Schedule an Appointment</a>
+                            <a href="javascript:void(0)" target="_blank">Schedule an Appointment</a>
 
                           </li>
                           <li class="menu-internal">
@@ -546,8 +542,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
                       </li>
                       <li class="menu-external">
-                        <a href="javascript:void(0)"
-                          target="_blank">Investor Relations</a>
+                        <a href="javascript:void(0)" target="_blank">Investor Relations</a>
 
                       </li>
                       <li class="menu-internal">
@@ -572,8 +567,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
                       </li>
                       <li class="menu-external">
-                        <a
-                          href="javascript:void(0)">Schedule
+                        <a href="javascript:void(0)">Schedule
                           an Appointment</a>
 
                       </li>
@@ -646,15 +640,15 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                             autocorrect="off" autocapitalize="off" required=""></div>
                         <div class="olb__links d-flex justify-content-start align-items-center mt-4 mb-2"><input
                             type="submit" class="btn btn-primary mr-3" value="Continue">
-                          <div><a href="javascript:void(0)" title="Enroll"
-                              target="_blank">Enroll</a><br><a href="javascript:void(0)"
-                              title="Forgot Password?" target="_blank">Forgot Password</a></div>
+                          <div><a href="javascript:void(0)" title="Enroll" target="_blank">Enroll</a><br><a
+                              href="javascript:void(0)" title="Forgot Password?" target="_blank">Forgot Password</a>
+                          </div>
                         </div>
                       </form>
                     </div>
                     <div class="estatements-personal">
-                      <div class="mt-3"><a href="javascript:void(0)"
-                          title="Login to eStatements (Personal)" class="btn btn-primary" target="_blank">Login to
+                      <div class="mt-3"><a href="javascript:void(0)" title="Login to eStatements (Personal)"
+                          class="btn btn-primary" target="_blank">Login to
                           eStatements</a></div>
                     </div>
                   </div>
@@ -677,9 +671,8 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                       <option value="estatements-business">eStatements</option>
                     </select>
                     <div class="cash-management">
-                      <div class="mt-3"><a
-                          href="javascript:void(0)"
-                          title="Login to Cash Management" class="btn btn-primary" target="_blank">Login to Cash
+                      <div class="mt-3"><a href="javascript:void(0)" title="Login to Cash Management"
+                          class="btn btn-primary" target="_blank">Login to Cash
                           Management</a></div>
                     </div>
                     <div class="treasury-connect">
@@ -687,12 +680,12 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                           class="btn btn-primary" target="_blank">Login to Treasury Connect</a></div>
                     </div>
                     <div class="my-escrow">
-                      <div class="mt-3"><a href="javascript:void(0)" title="Login to MyEscrow"
-                          class="btn btn-primary" target="_blank">Login to MyEscrow</a></div>
+                      <div class="mt-3"><a href="javascript:void(0)" title="Login to MyEscrow" class="btn btn-primary"
+                          target="_blank">Login to MyEscrow</a></div>
                     </div>
                     <div class="estatements-business">
-                      <div class="mt-3"><a href="javascript:void(0)"
-                          title="Login to eStatements (Business)" class="btn btn-primary" target="_blank">Login to
+                      <div class="mt-3"><a href="javascript:void(0)" title="Login to eStatements (Business)"
+                          class="btn btn-primary" target="_blank">Login to
                           eStatements</a></div>
                     </div>
                   </div>
@@ -711,9 +704,8 @@ Place this snippet between the <head> and </head> tags on every page of your sit
                     <div class="text-center"><a href="javascript:void(0)"
                         title="Login to Wealth Management Client Access" class="btn btn-primary w-100"
                         target="_blank">Wealth Management</a></div>
-                    <div class="text-center pt-2"><a
-                        href="javascript:void(0)"
-                        title="Login to Private Client Portal" class="btn btn-primary w-100" target="_blank">Private
+                    <div class="text-center pt-2"><a href="javascript:void(0)" title="Login to Private Client Portal"
+                        class="btn btn-primary w-100" target="_blank">Private
                         Client Portal</a></div>
                   </div>
                 </div>
@@ -812,8 +804,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
                   </li>
                   <li class="menu-external">
-                    <a
-                      href="javascript:void(0)">Schedule
+                    <a href="javascript:void(0)">Schedule
                       an Appointment</a>
 
                   </li>
@@ -831,8 +822,7 @@ Place this snippet between the <head> and </head> tags on every page of your sit
 
                   </li>
                   <li class="menu-external">
-                    <a href="javascript:void(0)"
-                      target="_blank">Investor Relations</a>
+                    <a href="javascript:void(0)" target="_blank">Investor Relations</a>
 
                   </li>
                   <li class="menu-internal">
@@ -903,8 +893,8 @@ Place this snippet between the <head> and </head> tags on every page of your sit
               class="copyright d-md-flex justify-content-center justify-content-lg-start align-items-lg-center mb-lg-0 mb-3">
               <div class="copytext text-center text-md-left pr-md-3 mb-2 mb-md-0">©&nbsp; Peapack Private Bank &amp;
                 Trust <span class="copy-date"></span> All Rights Reserved.</div>
-              <div class="linkedin text-center text-md-left pr-lg-3 mb-3 mb-md-0"><a
-                  href="javascript:void(0)" title="LinkedIn">LinkedIn</a></div>
+              <div class="linkedin text-center text-md-left pr-lg-3 mb-3 mb-md-0"><a href="javascript:void(0)"
+                  title="LinkedIn">LinkedIn</a></div>
             </div>
             <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center">
               <div class="jha mb-2 mb-sm-0 pr-sm-3"><a href="javascript:void(0)" class="external"><span
@@ -1161,6 +1151,21 @@ Place this snippet between the <head> and </head> tags on every page of your sit
       console.log('Navigation blocked to prevent leaving the preview mode:', href);
     });
   </script>
+
+  <!-- Sensei Chat Widget Injected Config & Script -->
+  <script>
+    window.SENSEI_CHAT_CONFIG = {
+      apiBaseUrl: "https://sensei-agents.australiaeast.cloudapp.azure.com/agilent",
+      title: "Peapack Private Assistant",
+      buttonText: "Message Us",
+      primaryColor: "#00426A",
+      secondaryColor: "#1F4F82",
+      logoUrl: "/scraper/sites/peapackprivate_com/fonts/PPG-Logo-Small.svg",
+      cssUrl: "/scraper/assets/sensei-chat-widget.css?v=2",
+      basePath: "/scraper"
+    };
+  </script>
+  <script src="/scraper/assets/sensei-chat-widget.js?v=2"></script>
 </body>
 
 </html>

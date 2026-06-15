@@ -48,6 +48,16 @@ export type SiteConfig = {
   clientSecret: string;
   tenant: string;
   responseMapper?: (ospData: any) => any;
+  chatConfig?: {
+    enabled: boolean;
+    apiBaseUrl?: string;
+    title?: string;
+    buttonText?: string;
+    primaryColor?: string;
+    secondaryColor?: string;
+    logoUrl?: string;
+    welcomeMessage?: string;
+  };
 };
 
 // Define a unified mapping of siteIds to their corresponding configurations
@@ -62,7 +72,16 @@ export const siteConfigs: Record<string, SiteConfig> = {
     clientId: 'osp-m2m-nationwide',
     clientSecret: process.env.NATIONWIDE_CLIENT_SECRET || '',
     tenant: 'nationwide',
-    responseMapper: genericYextMapper
+    responseMapper: genericYextMapper,
+    chatConfig: {
+      enabled: true,
+      apiBaseUrl: "https://sensei-agents.australiaeast.cloudapp.azure.com/agilent",
+      title: "Nationwide Assistant",
+      buttonText: "Message Us",
+      primaryColor: "#002C77",
+      secondaryColor: "#0056B3",
+      logoUrl: "/scraper/sites/nationwide_com/favicon.ico"
+    }
   },
   'communitysavings_bank': {
     clientId: 'osp-m2m-communitysavings',
@@ -74,6 +93,15 @@ export const siteConfigs: Record<string, SiteConfig> = {
     clientId: 'osp-m2m-peapackprivate',
     clientSecret: process.env.PEAPACKPRIVATE_CLIENT_SECRET || '',
     tenant: 'peapackprivate',
-    responseMapper: genericFlatMapper
+    responseMapper: genericFlatMapper,
+    chatConfig: {
+      enabled: true,
+      apiBaseUrl: "https://sensei-agents.australiaeast.cloudapp.azure.com/agilent",
+      title: "Peapack Private Assistant",
+      buttonText: "Message Us",
+      primaryColor: "#00426A",
+      secondaryColor: "#1F4F82",
+      logoUrl: "/sites/peapackprivate_com/images/peapack-favicon.ico" // fallbacks to favicon/logo
+    }
   }
 };
