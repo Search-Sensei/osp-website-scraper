@@ -647,5 +647,27 @@
  <div class="dcom-c-textBlock--disclosure">
   <div class="iw_placeholder" id="iw_placeholder1733585015725"></div>
  </div>
-</div></div><script type="text/javascript">_satellite.pageBottom();</script><!--ls:end[body]--><!--ls:begin[page_track]--><!--ls:end[page_track]--></body>
+</div></div><script type="text/javascript">_satellite.pageBottom();</script><!--ls:end[body]--><!--ls:begin[page_track]--><!--ls:end[page_track]-->
+
+  <!-- Sensei Chat Widget Injected Config & Script -->
+  <script>
+    window.SENSEI_CHAT_CONFIG = {
+      apiBaseUrl: "https://sensei-agents.australiaeast.cloudapp.azure.com/agilent",
+      title: "Citizens Bank Assistant",
+      buttonText: "Message Us",
+      primaryColor: "#006039",
+      secondaryColor: "#006039",
+      logoUrl: "https://www.citizensbank.com/assets/CB_resources/images/cbds-logos/logo-citizens__horz-green.svg",
+      cssUrl: window.location.origin + "/scraper/assets/sensei-chat-widget.css?v=2",
+      basePath: "/scraper"
+    };
+
+    // Dynamically insert the script tag using the current window's origin to bypass the <base> tag!
+    (function() {
+      const script = document.createElement('script');
+      script.src = window.location.origin + "/scraper/assets/sensei-chat-widget.js?v=2";
+      document.body.appendChild(script);
+    })();
+  </script>
+</body>
 </html>

@@ -7,7 +7,8 @@ async function runTest() {
   const titles = {
     'peapackprivate_com': 'Peapack Private Assistant',
     'nationwide_com': 'Nationwide Assistant',
-    'communitysavings_bank': 'Community Savings Bank Assistant'
+    'communitysavings_bank': 'Community Savings Bank Assistant',
+    'citizensbank_com': 'Citizens Bank Assistant'
   };
   const expectedTitle = titles[siteId] || 'Assistant';
   
@@ -109,7 +110,7 @@ async function runTest() {
     console.log('Sending message to Group Chat...');
     const chatInput = iframe.locator('input[placeholder*="Type a message"]');
     await chatInput.waitFor({ state: 'visible', timeout: 5000 });
-    await chatInput.fill(`Hello! I want to ask about ${siteId === 'peapackprivate_com' ? 'Peapack Private' : siteId === 'communitysavings_bank' ? 'Community Savings Bank' : 'Nationwide'} services.`);
+    await chatInput.fill(`Hello! I want to ask about ${siteId === 'peapackprivate_com' ? 'Peapack Private' : siteId === 'communitysavings_bank' ? 'Community Savings Bank' : siteId === 'citizensbank_com' ? 'Citizens Bank' : 'Nationwide'} services.`);
     await page.keyboard.press('Enter');
     console.log('Message sent.');
 

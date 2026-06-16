@@ -66,7 +66,16 @@ export const siteConfigs: Record<string, SiteConfig> = {
     clientId: 'osp-m2m-citizensbank',
     clientSecret: process.env.CITIZENSBANK_CLIENT_SECRET || '',
     tenant: 'citizensbank',
-    responseMapper: genericYextMapper
+    responseMapper: genericYextMapper,
+    chatConfig: {
+      enabled: true,
+      apiBaseUrl: "https://sensei-agents.australiaeast.cloudapp.azure.com/agilent",
+      title: "Citizens Bank Assistant",
+      buttonText: "Message Us",
+      primaryColor: "#006039",
+      secondaryColor: "#006039",
+      logoUrl: "https://www.citizensbank.com/assets/CB_resources/images/cbds-logos/logo-citizens__horz-green.svg"
+    }
   },
   'nationwide_com': {
     clientId: 'osp-m2m-nationwide',
