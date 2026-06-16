@@ -55,6 +55,15 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
   const buttonText = config.buttonText || "Message Us";
   const logoUrl = config.logoUrl || `${basePath}/logo.png`;
 
+  const resolveAssetUrl = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) return url;
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}${url}`;
+    }
+    return url;
+  };
+
   const defaultAgents: ChatAgent[] = [
     {
       id: 'SupportSpecialist',
@@ -676,7 +685,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
     <div className="sensei-chat-container">
       <div
         className={`fixed bottom-0 right-0 z-50 transition-all duration-300 ease-in-out ${
-          isChatBoxVisible ? "right-[800px]" : "right-0"
+          isChatBoxVisible ? "right-[500px]" : "right-0"
         }`}
       >
         {!isChatBoxVisible && (
@@ -748,8 +757,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
       </div>
 
       <div
-        className={`fixed bottom-0 w-[800px] h-[700px] z-[100] border bg-white transition-all duration-300 ease-in-out shadow-2xl ${
-          isChatBoxVisible ? "right-0" : "-right-[800px]"
+        className={`fixed bottom-0 w-[500px] h-[700px] z-[100] border bg-white transition-all duration-300 ease-in-out shadow-2xl ${
+          isChatBoxVisible ? "right-0" : "-right-[500px]"
         }`}
       >
         <div className="bg-secondary-color py-2 flex items-center justify-between px-4">
@@ -796,7 +805,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
 
         {activeTab === 'group' && (
           <div className="bg-primary-color flex items-center py-4 space-x-5 pl-5">
-            <img src={logoUrl} alt="logo" className="w-12 h-12 rounded-full object-cover bg-white" />
+            <img src={resolveAssetUrl(logoUrl)} alt="logo" className="w-12 h-12 rounded-full object-cover bg-white" />
             <div className="flex-col">
               <p className="text-white font-medium">Chat with us 24/7</p>
             </div>
@@ -822,7 +831,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
                       style={{ borderColor: message.color }}
                     >
                       <img
-                        src={message.avatar || logoUrl}
+                        src={resolveAssetUrl(message.avatar || logoUrl)}
                         alt="bot-avatar"
                         className="w-10 h-10 object-cover scale-150"
                       />
@@ -863,7 +872,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
                 >
                   <div className="w-10 h-10 rounded-full mr-2 border-2 overflow-hidden flex-shrink-0 flex items-center justify-center bg-white">
                     <img
-                      src={logoUrl}
+                      src={resolveAssetUrl(logoUrl)}
                       alt="bot-avatar"
                       className="w-10 h-10 object-cover"
                     />
@@ -996,7 +1005,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
                         style={{ borderColor: agentInfo.color }}
                       >
                         <img
-                          src={agentInfo.avatar}
+                          src={resolveAssetUrl(agentInfo.avatar)}
                           alt={`${agent.name}-avatar`}
                           className="w-10 h-10 object-cover scale-150"
                         />
@@ -1036,7 +1045,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
                               style={{ borderColor: agentInfo.color }}
                             >
                               <img
-                                src={agentInfo.avatar}
+                                src={resolveAssetUrl(agentInfo.avatar)}
                                 alt={`${agent.name}-avatar`}
                                 className="w-8 h-8 object-cover scale-150"
                               />
@@ -1078,7 +1087,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
             data-agent-id={agentId}
             className="fixed bottom-0 w-[400px] h-[500px] z-[101] border bg-white shadow-2xl transition-all duration-300 ease-in-out flex flex-col"
             style={{
-              right: `${820 + (index * 420)}px`
+              right: `${520 + (index * 420)}px`
             }}
           >
             <div className="bg-primary-color py-3 px-4 flex items-center justify-between">
@@ -1088,7 +1097,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
                   style={{ borderColor: agentInfo.color }}
                 >
                   <img
-                    src={agentInfo.avatar}
+                    src={resolveAssetUrl(agentInfo.avatar)}
                     alt={`${agent.name}-avatar`}
                     className="w-8 h-8 object-cover scale-150"
                   />
@@ -1122,7 +1131,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
                       style={{ borderColor: message.color }}
                     >
                       <img
-                        src={message.avatar || logoUrl}
+                        src={resolveAssetUrl(message.avatar || logoUrl)}
                         alt="bot-avatar"
                         className="w-8 h-8 object-cover scale-150"
                       />
@@ -1211,7 +1220,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
 
       {/* Team Tab */}
       {showTeamTab && (
-        <div className="fixed bottom-0 right-[800px] w-80 h-[560px] bg-white border border-gray-300 shadow-2xl z-[99] transition-all duration-300 ease-in-out">
+        <div className="fixed bottom-0 right-[500px] w-80 h-[560px] bg-white border border-gray-300 shadow-2xl z-[99] transition-all duration-300 ease-in-out">
           <div className="bg-primary-color py-3 px-4 flex items-center justify-between">
             <h3 className="text-white font-semibold text-lg">Our Team</h3>
             <button 
@@ -1248,7 +1257,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
 
       {/* Agent Details Tab */}
       {showAgentDetails && selectedAgent && (
-        <div className="fixed bottom-0 right-[1120px] w-96 h-[560px] bg-white border border-gray-300 shadow-2xl z-[98] transition-all duration-300 ease-in-out">
+        <div className="fixed bottom-0 right-[1170px] w-96 h-[560px] bg-white border border-gray-300 shadow-2xl z-[98] transition-all duration-300 ease-in-out">
           <div className="bg-primary-color py-3 px-4 flex items-center justify-between">
             <h3 className="text-white font-semibold text-lg">Agent Details</h3>
             <button 
