@@ -4,7 +4,12 @@ const fs = require('fs');
 
 async function runTest() {
   const siteId = process.argv[2] || 'nationwide_com';
-  const expectedTitle = siteId === 'peapackprivate_com' ? 'Peapack Private Assistant' : 'Nationwide Assistant';
+  const titles = {
+    'peapackprivate_com': 'Peapack Private Assistant',
+    'nationwide_com': 'Nationwide Assistant',
+    'communitysavings_bank': 'Community Savings Bank Assistant'
+  };
+  const expectedTitle = titles[siteId] || 'Assistant';
   
   console.log(`Starting Playwright test for ${siteId} (${expectedTitle}) Chat Widget...`);
   
@@ -104,7 +109,7 @@ async function runTest() {
     console.log('Sending message to Group Chat...');
     const chatInput = iframe.locator('input[placeholder*="Type a message"]');
     await chatInput.waitFor({ state: 'visible', timeout: 5000 });
-    await chatInput.fill(`Hello! I want to ask about ${siteId === 'peapackprivate_com' ? 'Peapack Private' : 'Nationwide'} services.`);
+    await chatInput.fill(`Hello! I want to ask about ${siteId === 'peapackprivate_com' ? 'Peapack Private' : siteId === 'communitysavings_bank' ? 'Community Savings Bank' : 'Nationwide'} services.`);
     await page.keyboard.press('Enter');
     console.log('Message sent.');
 

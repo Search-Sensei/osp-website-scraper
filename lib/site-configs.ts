@@ -87,7 +87,16 @@ export const siteConfigs: Record<string, SiteConfig> = {
     clientId: 'osp-m2m-communitysavings',
     clientSecret: process.env.COMMUNITYSAVINGS_CLIENT_SECRET || '',
     tenant: 'communitysavings',
-    responseMapper: genericFlatMapper
+    responseMapper: genericFlatMapper,
+    chatConfig: {
+      enabled: true,
+      apiBaseUrl: "https://sensei-agents.australiaeast.cloudapp.azure.com/agilent",
+      title: "Community Savings Bank Assistant",
+      buttonText: "Message Us",
+      primaryColor: "#af192a",
+      secondaryColor: "#af192a",
+      logoUrl: "/scraper/sites/communitysavings_bank/fonts/csb-iowa-logo.svg"
+    }
   },
   'peapackprivate_com': {
     clientId: 'osp-m2m-peapackprivate',
