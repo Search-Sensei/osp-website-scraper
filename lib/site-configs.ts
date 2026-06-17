@@ -99,7 +99,7 @@ export const siteConfigs: Record<string, SiteConfig> = {
     responseMapper: genericFlatMapper,
     chatConfig: {
       enabled: true,
-      apiBaseUrl: "https://sensei-agents.australiaeast.cloudapp.azure.com/agilent",
+      apiBaseUrl: "https://sensei-agents.australiaeast.cloudapp.azure.com/csb",
       title: "Community Savings Bank Assistant",
       buttonText: "Message Us",
       primaryColor: "#af192a",

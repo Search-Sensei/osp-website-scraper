@@ -53,8 +53,8 @@ const path = require('path');
     console.log('Message sent.');
 
     // Wait for the response
-    console.log('Waiting 15 seconds for backend response...');
-    await page.waitForTimeout(15000);
+    console.log('Waiting 25 seconds for backend response...');
+    await page.waitForTimeout(25000);
 
     const responseScreenshotPath = path.join(__dirname, '..', 'public', 'assets', 'csb-chat-response.png');
     await page.screenshot({ path: responseScreenshotPath });
