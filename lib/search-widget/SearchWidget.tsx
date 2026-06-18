@@ -84,7 +84,13 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
       const navs = data.navigators || (data.body && data.body.navigators) || [];
       const featured = data.featured || (data.body && data.body.featured) || [];
 
-      const totalResults = data.resultsCount ?? data.body?.resultsCount ?? data.body?.searchDefinition?.totalResults ?? 0;
+      let apiTotalResults = data.resultsCount ?? data.body?.resultsCount ?? data.body?.searchDefinition?.totalResults;
+      if (apiTotalResults === undefined || apiTotalResults === 0) {
+        // Fallback: If no total is returned, use items.length for first page, or preserve existing count
+        apiTotalResults = pageNum === 1 ? items.length : resultsCount;
+      }
+      const totalResults = apiTotalResults;
+
       // The API doesn't support pagination properly, so we use our requested page/size
       const returnedPage = pageNum;
       const returnedPageSize = pageSize;
