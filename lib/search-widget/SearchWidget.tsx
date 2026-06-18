@@ -437,11 +437,10 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                     <button
                       key={`page-${pageNum}`}
                       onClick={() => performSearch(query, activeCategory, pageNum)}
-                      className={`text-base font-bold px-2 transition-all ${isActive ? "border-b-2" : "text-slate-800 hover:text-slate-600"}`}
+                      className={`text-base font-bold px-2 py-1 transition-all ${isActive ? "" : "text-slate-800 hover:text-slate-600"}`}
                       style={{
                         color: isActive ? primaryColor : undefined,
-                        borderColor: isActive ? primaryColor : "transparent",
-                        paddingBottom: isActive ? "2px" : undefined
+                        borderBottom: isActive ? `2px solid ${primaryColor}` : "2px solid transparent",
                       }}
                     >
                       {pageNum}
