@@ -200,19 +200,49 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
     };
   }, [teamAgents, logoUrl, basePath]);
 
+  // Fetch active agents dynamically from backend API
+  useEffect(() => {
+    const fetchActiveAgents = async () => {
+      try {
+        const res = await fetch(`${apiBaseUrl}/chat/active-agents`);
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const mappedAgents: ChatAgent[] = data.map((a: any) => ({
+            id: a.agent_name,
+            name: a.name,
+            title: a.job,
+            description: a.job,
+            expertise: [a.job],
+            avatar: a.profile_photo,
+            color: a.chat_box_border_color,
+            backendName: a.agent_name,
+            status: a.default_responder ? "involved" : undefined
+          }));
+          setTeamAgents(mappedAgents);
+        }
+      } catch (error) {
+        console.error("Error fetching active agents:", error);
+      }
+    };
+
+    if (apiBaseUrl) {
+      fetchActiveAgents();
+    }
+  }, [apiBaseUrl]);
+
   // Welcome message loading
   useEffect(() => {
-    if (isChatBoxVisible && !hasInitialized) {
-      const welcomeAgent = getAgentInfo("CorporateLibrarian");
+    if (isChatBoxVisible && !hasInitialized && teamAgents.length > 0) {
+      const hostAgent = teamAgents.find(a => a.status === "involved") || teamAgents.find(a => a.id === "CorporateLibrarian") || teamAgents[teamAgents.length - 1] || teamAgents[0];
+      const welcomeAgent = getAgentInfo(hostAgent.id);
       let welcomeText = config.welcomeMessage;
       
       if (!welcomeText) {
         const agentIntroList = teamAgents
-          .filter(a => a.id !== "CorporateLibrarian")
+          .filter(a => a.id !== hostAgent.id)
           .map(a => `<li><strong>${a.name}</strong> our ${a.title}</li>`)
           .join('\n');
-        
-        const hostAgent = teamAgents.find(a => a.id === "CorporateLibrarian") || teamAgents[3] || teamAgents[0];
         
         welcomeText = `<div>
           <p>Hello. My name is ${hostAgent.name} and I am your ${chatTitle}.</p>
