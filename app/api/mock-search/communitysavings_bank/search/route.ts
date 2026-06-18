@@ -109,7 +109,7 @@ export async function GET(request: Request) {
           "type": 0,
           "position": "top",
           "title": "FeaturedContent_61",
-          "content": "\u003ch2\u003e\u003ca href=\"/content/nabrwd/en/personal/home-loans.html\" target=\"_self\" rel=\"noopener noreferrer\"\u003e\u003cstrong\u003eHome loans\u003c/strong\u003e\u003c/a\u003e\u003c/h2\u003e\n\u003cp\u003eWe have tools, calculators &#97;nd guides to help you choose the right home loan for you.\u003c/p\u003e\n\u003cp\u003e\u003ca href=\"/content/nabrwd/en/personal/home-loans.html\" target=\"_self\" rel=\"noopener noreferrer\"\u003eDiscover more\u003c/a\u003e\u003c/p\u003e\n",
+          "content": "\u003ch2\u003e\u003ca href=\"https://www.communitysavings.bank/content/nabrwd/en/personal/home-loans.html\" target=\"_self\" rel=\"noopener noreferrer\"\u003e\u003cstrong\u003eHome loans\u003c/strong\u003e\u003c/a\u003e\u003c/h2\u003e\n\u003cp\u003eWe have tools, calculators &#97;nd guides to help you choose the right home loan for you.\u003c/p\u003e\n\u003cp\u003e\u003ca href=\"https://www.communitysavings.bank/content/nabrwd/en/personal/home-loans.html\" target=\"_self\" rel=\"noopener noreferrer\"\u003eDiscover more\u003c/a\u003e\u003c/p\u003e\n",
           "imageReference": ""
         }
       ];
