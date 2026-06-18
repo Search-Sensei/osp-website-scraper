@@ -374,85 +374,93 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
       {!loading && !error && hasSearched && resultsCount > pageSize && (
         (() => {
           const totalPages = Math.ceil(resultsCount / pageSize);
-          const maxPagesToShow = 10;
-          let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-          let endPage = startPage + maxPagesToShow - 1;
+          if (totalPages <= 1) return null;
 
-          if (endPage > totalPages) {
-            endPage = totalPages;
-            startPage = Math.max(1, endPage - maxPagesToShow + 1);
-          }
+          // Helper to get pagination range with ellipsis
+          const getPaginationRange = (c: number, t: number) => {
+            let delta = 2;
+            if (c === 1 || c === t) delta = 4;
+            else if (c === 2 || c === t - 1) delta = 3;
+            
+            const range: (number | string)[] = [];
+            for (let i = Math.max(2, c - delta); i <= Math.min(t - 1, c + delta); i++) {
+              range.push(i);
+            }
+            if (range.length > 0 && typeof range[0] === 'number' && range[0] > 2) range.unshift("...");
+            range.unshift(1);
+            if (range.length > 0 && typeof range[range.length - 1] === 'number' && (range[range.length - 1] as number) < t - 1) range.push("...");
+            if (t > 1) range.push(t);
+            return range;
+          };
 
-          const pages = [];
-          for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-          }
+          const pages = getPaginationRange(currentPage, totalPages);
 
           return (
-            <div className="flex flex-col sm:flex-row justify-center sm:justify-between items-center gap-4 mt-8 pt-6 border-t" style={{ borderColor: borderColor }}>
-
-              <div className="flex items-center gap-1.5">
+            <div className="flex justify-center items-center gap-6 mt-12 mb-8 pt-8">
+              {/* First & Prev */}
+              <div className="flex items-center gap-4">
                 <button
                   onClick={() => performSearch(query, activeCategory, 1)}
                   disabled={currentPage <= 1}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors hidden sm:block ${currentPage <= 1 ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-white border hover:bg-slate-50 text-slate-700"
-                    }`}
-                  style={{ borderColor: currentPage <= 1 ? "transparent" : borderColor }}
+                  className={`text-lg font-bold transition-colors ${currentPage <= 1 ? "text-slate-300 cursor-not-allowed" : "text-slate-600 hover:text-slate-900"}`}
                   title="First Page"
                 >
-                  First
+                  |&lt;
                 </button>
                 <button
                   onClick={() => performSearch(query, activeCategory, currentPage - 1)}
                   disabled={currentPage <= 1}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentPage <= 1 ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-white border hover:bg-slate-50 text-slate-700"
-                    }`}
-                  style={{ borderColor: currentPage <= 1 ? "transparent" : borderColor }}
+                  className={`text-lg font-bold transition-colors ${currentPage <= 1 ? "text-slate-300 cursor-not-allowed" : "text-slate-600 hover:text-slate-900"}`}
                   title="Previous Page"
                 >
-                  Prev
+                  &lt;
                 </button>
               </div>
 
-              <div className="flex items-center gap-1 overflow-x-auto max-w-full pb-1 sm:pb-0">
-                {pages.map(pageNum => (
-                  <button
-                    key={pageNum}
-                    onClick={() => performSearch(query, activeCategory, pageNum)}
-                    className={`min-w-[2rem] h-8 px-1 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${currentPage === pageNum
-                      ? "text-white"
-                      : "bg-white border hover:bg-slate-50 text-slate-700"
-                      }`}
-                    style={{
-                      backgroundColor: currentPage === pageNum ? primaryColor : undefined,
-                      borderColor: currentPage === pageNum ? primaryColor : borderColor
-                    }}
-                  >
-                    {pageNum}
-                  </button>
-                ))}
+              {/* Page Numbers */}
+              <div className="flex items-center gap-3">
+                {pages.map((item, idx) => {
+                  if (item === "...") {
+                    return <span key={`ellipsis-${idx}`} className="text-slate-800 font-bold text-base px-1">...</span>;
+                  }
+                  
+                  const pageNum = item as number;
+                  const isActive = currentPage === pageNum;
+                  
+                  return (
+                    <button
+                      key={`page-${pageNum}`}
+                      onClick={() => performSearch(query, activeCategory, pageNum)}
+                      className={`text-base font-bold px-2 transition-all ${isActive ? "border-b-2" : "text-slate-800 hover:text-slate-600"}`}
+                      style={{
+                        color: isActive ? primaryColor : undefined,
+                        borderColor: isActive ? primaryColor : "transparent",
+                        paddingBottom: isActive ? "2px" : undefined
+                      }}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="flex items-center gap-1.5">
+              {/* Next & Last */}
+              <div className="flex items-center gap-4">
                 <button
                   onClick={() => performSearch(query, activeCategory, currentPage + 1)}
                   disabled={currentPage >= totalPages}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentPage >= totalPages ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-white border hover:bg-slate-50 text-slate-700"
-                    }`}
-                  style={{ borderColor: currentPage >= totalPages ? "transparent" : borderColor }}
+                  className={`text-lg font-bold transition-colors ${currentPage >= totalPages ? "text-slate-300 cursor-not-allowed" : "text-slate-900 hover:text-slate-600"}`}
                   title="Next Page"
                 >
-                  Next
+                  &gt;
                 </button>
                 <button
                   onClick={() => performSearch(query, activeCategory, totalPages)}
                   disabled={currentPage >= totalPages}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors hidden sm:block ${currentPage >= totalPages ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-white border hover:bg-slate-50 text-slate-700"
-                    }`}
-                  style={{ borderColor: currentPage >= totalPages ? "transparent" : borderColor }}
+                  className={`text-lg font-bold transition-colors ${currentPage >= totalPages ? "text-slate-300 cursor-not-allowed" : "text-slate-900 hover:text-slate-600"}`}
                   title="Last Page"
                 >
-                  Last
+                  &gt;|
                 </button>
               </div>
             </div>
