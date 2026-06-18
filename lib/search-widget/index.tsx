@@ -66,11 +66,12 @@ function initSearchWidget() {
   const topSearchSelector = config.topSearchContainerSelector || "#sensei-top-search-container";
   const topSearchContainer = document.querySelector(topSearchSelector);
   
-  if (topSearchContainer) {
+    if (topSearchContainer) {
     let topSearchRoot = document.getElementById("sensei-top-search-root");
     if (!topSearchRoot) {
       topSearchRoot = document.createElement("div");
       topSearchRoot.id = "sensei-top-search-root";
+      topSearchRoot.className = "w-full h-full";
       topSearchContainer.innerHTML = "";
       topSearchContainer.appendChild(topSearchRoot);
     }
@@ -84,7 +85,7 @@ function initSearchWidget() {
     topShadowRoot.appendChild(topLink);
     
     const topReactContainer = document.createElement("div");
-    topReactContainer.className = "sensei-top-search-wrapper h-full";
+    topReactContainer.className = "sensei-top-search-wrapper h-full w-full";
     topShadowRoot.appendChild(topReactContainer);
     
     const topReactDomRoot = ReactDOM.createRoot(topReactContainer);
