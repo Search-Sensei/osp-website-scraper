@@ -188,12 +188,15 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
   };
 
   return (
-    <div style={containerStyle} className="sensei-root-wrapper w-full py-4 text-slate-800">
+    <div style={containerStyle} className="sensei-root-wrapper w-full p-4 md:p-8 text-slate-800 bg-[#f3f4f6] min-h-[50vh]">
       {hasSearched && (
-        <div className="mb-6">
+        <div className="mb-8">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-6">
+            Results found for "{query}"
+          </h2>
           {/* Category Chips Bar */}
-          <div className="flex flex-wrap items-center gap-2 mb-6" id="search-filter-bar">
-            <span className="font-semibold text-slate-700 mr-2 text-sm">Filter by:</span>
+          <div className="flex flex-wrap items-center gap-3 mb-6" id="search-filter-bar">
+            <span className="font-semibold text-slate-900 mr-2 text-base">Filter by</span>
             {categoriesToRender.map((cat) => {
               const isActive = activeCategory.toLowerCase() === cat.toLowerCase();
               const count = getCategoryCount(cat);
@@ -202,13 +205,13 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                 <button
                   key={cat}
                   onClick={() => handleCategoryClick(cat)}
-                  className={`filter-chip px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${isActive
+                  className={`filter-chip px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 cursor-pointer ${isActive
                     ? "active inline-flex items-center"
-                    : "border hover:bg-slate-100"
+                    : "bg-white border hover:bg-slate-50 text-slate-700"
                     }`}
                   style={{
-                    backgroundColor: isActive ? accentBgColor : "transparent",
-                    color: isActive ? accentColor : "inherit",
+                    backgroundColor: isActive ? accentBgColor : undefined,
+                    color: isActive ? accentColor : undefined,
                     borderColor: isActive ? "transparent" : borderColor,
                   }}
                 >
@@ -243,11 +246,11 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
 
       {/* Results List & Featured Content */}
       {!loading && !error && hasSearched && (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {featuredContent.length > 0 && (
             <div className="mb-4">
               {featuredContent.map((feat, idx) => (
-                <div 
+                <div
                   key={`feat-${idx}`}
                   className="bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow p-6 mb-4 featured-content-card"
                   style={{ borderColor: borderColor }}
@@ -292,61 +295,77 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
               </h3>
             </div>
           ) : (
-            results.map((item, index) => {
-              const displayCats = getDisplayCategories(item);
-              const summaryText =
-                item.summary ||
-                (item.body
-                  ? item.body.length > 200
-                    ? item.body.substring(0, 200) + "..."
-                    : item.body
-                  : "");
+            (() => {
+              const topResults = results.slice(0, 3);
+              const remainingResults = results.slice(3);
 
               return (
-                <div
-                  key={index}
-                  className="search-item border-b pb-4 transition-all duration-300 hover:translate-x-1"
-                  style={{ borderColor: borderColor }}
-                >
-                  {/* Item URL Breadcrumb */}
-                  <div className="text-xs text-slate-500 mb-1 break-all flex items-center gap-1">
-                    <span className="truncate">{item.url}</span>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    {topResults.map((item, index) => {
+                      const displayCats = getDisplayCategories(item);
+                      const firstCat = displayCats.length > 0 ? displayCats[0] : "Result";
+                      const summaryText =
+                        item.summary ||
+                        (item.body
+                          ? item.body.length > 150
+                            ? item.body.substring(0, 150) + "..."
+                            : item.body
+                          : "");
+
+                      return (
+                        <div key={`top-${index}`} className="bg-white rounded-xl border shadow-sm p-6 flex flex-col h-full hover:shadow-md transition-shadow" style={{ borderColor: borderColor }}>
+                          <h3 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
+                          <div className="mb-3">
+                            <span className="inline-block px-3 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded-full">
+                              {firstCat}
+                            </span>
+                          </div>
+                          <p className="text-sm text-slate-600 flex-grow leading-relaxed">{summaryText}</p>
+                          <div className="mt-6 text-right">
+                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold hover:underline" style={{ color: primaryColor }}>
+                              Learn more &gt;
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  {/* Item Title Link */}
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="search-link block text-lg font-semibold mb-2 hover:underline transition-colors"
-                    style={{ color: primaryColor }}
-                  >
-                    <span className="search-title">{item.title}</span>
-                  </a>
+                  {remainingResults.length > 0 && (
+                    <div className="bg-white rounded-xl border shadow-sm divide-y" style={{ borderColor: borderColor }}>
+                      {remainingResults.map((item, index) => {
+                        const displayCats = getDisplayCategories(item);
+                        const firstCat = displayCats.length > 0 ? displayCats[0] : "Result";
+                        const summaryText =
+                          item.summary ||
+                          (item.body
+                            ? item.body.length > 150
+                              ? item.body.substring(0, 150) + "..."
+                              : item.body
+                            : "");
 
-                  {/* Summary */}
-                  <p className="search-summary text-sm text-slate-600 mb-3 leading-relaxed">
-                    {summaryText}
-                  </p>
-
-                  {/* Category Tags */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {displayCats.map((cat) => (
-                      <span
-                        key={cat}
-                        className="text-xs px-2.5 py-0.5 rounded-full font-medium"
-                        style={{
-                          backgroundColor: `${accentBgColor}80`, // 50% opacity
-                          color: accentColor,
-                        }}
-                      >
-                        {cat}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                        return (
+                          <a href={item.url} target="_blank" rel="noopener noreferrer" key={`list-${index}`} className="block p-5 hover:bg-slate-50 transition-colors group">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                              <div className="flex-1">
+                                <h4 className="text-base font-bold text-slate-900 mb-1 group-hover:underline">{item.title}</h4>
+                                <p className="text-sm text-slate-500 line-clamp-2">{summaryText}</p>
+                              </div>
+                              <div className="flex-shrink-0 flex items-center justify-end">
+                                <span className="text-sm font-semibold text-slate-900 flex items-center gap-1 whitespace-nowrap">
+                                  {firstCat} <span className="ml-1 text-slate-400 font-bold">&gt;</span>
+                                </span>
+                              </div>
+                            </div>
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               );
-            })
+            })()
           )}
         </div>
       )}
