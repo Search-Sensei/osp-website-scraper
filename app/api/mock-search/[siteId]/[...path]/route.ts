@@ -60,7 +60,7 @@ async function getAccessToken(siteId: string): Promise<string> {
   return tokenData.access_token;
 }
 
-async function searchOspApi(tenant: string, query: string, accessToken: string): Promise<any> {
+async function searchOspApi(tenant: string, query: string, accessToken: string, page: number, pageSize: number): Promise<any> {
   const targetUrl = process.env.OSP_SEARCH_API_URL;
   if (!targetUrl) {
     throw new Error('OSP_SEARCH_API_URL is not defined in environment variables');
@@ -78,7 +78,11 @@ async function searchOspApi(tenant: string, query: string, accessToken: string):
 
   const requestBody = {
     profile: 'all',
-    query: query
+    query: query,
+    searchDefinition: {
+      page,
+      pageSize
+    }
   };
 
   console.log(`[Mock Search Router] Calling external API: ${targetUrl} with body:`, requestBody);
@@ -108,11 +112,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ site
     // 2. Call External Search API
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query') || searchParams.get('q') || '';
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
 
     const config = siteConfigs[siteId.toLowerCase()];
     const tenant = config?.tenant || siteId.toLowerCase();
 
-    const data = await searchOspApi(tenant, query, accessToken);
+    const data = await searchOspApi(tenant, query, accessToken, page, pageSize);
 
     const mapper = config?.responseMapper;
     const mappedData = mapper ? mapper(data) : data;

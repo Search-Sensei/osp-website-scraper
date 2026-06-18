@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint",
     "scrape": "tsx scripts/scrape.ts",
-    "build:chat-widget": "node scripts/build-chat-widget.js"
+    "build:chat-widget": "node scripts/build-chat-widget.js",
+    "build:search-widget": "node scripts/build-search-widget.js",
+    "build:widgets": "npm run build:chat-widget && npm run build:search-widget"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -25,6 +27,7 @@
     "website-scraper-puppeteer": "^2.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@tailwindcss/cli": "^4.3.1",
     "@tailwindcss/postcss": "^4",
     "@types/jest": "^30.0.0",

@@ -32,14 +32,61 @@ export const genericYextMapper = (ospData: any) => {
   };
 };
 
+export const genericTransparentMapper = (ospData: any) => {
+  return ospData;
+};
+
 export const genericFlatMapper = (ospData: any) => {
   const results = ospData?.body?.results || [];
   return {
-    results: results.map((r: any) => ({
-      title: r.title || 'Untitled',
-      url: r.url || '#',
-      summary: r.body ? r.body.substring(0, 150) + "..." : ""
-    }))
+    results: results.map((r: any) => {
+      const title = r.title || 'Untitled';
+      const url = r.url || '#';
+      const summary = r.body ? r.body.substring(0, 150) + "..." : "";
+      
+      // Determine categories: try to parse API categories/category first
+      let categoriesList: string[] = [];
+      if (Array.isArray(r.categories)) {
+        categoriesList = r.categories;
+      } else if (typeof r.categories === 'string') {
+        categoriesList = [r.categories];
+      } else if (r.category) {
+        categoriesList = Array.isArray(r.category) ? r.category : [r.category];
+      }
+      
+      // Fallback to server-side classification heuristic if API returned no categories
+      if (categoriesList.length === 0) {
+        const urlLower = url.toLowerCase();
+        const titleLower = title.toLowerCase();
+        
+        if (urlLower.includes("/business/") || urlLower.includes("/commercial/") || urlLower.includes("/sba/") || urlLower.includes("/agricultural/")) {
+          categoriesList = ["Business"];
+        } else if (urlLower.includes("/individuals/") || urlLower.includes("/personal/") || urlLower.includes("/individual/")) {
+          categoriesList = ["Personal"];
+        } else if (urlLower.includes("/contact/") || urlLower.includes("/calculator/") || urlLower.includes("/resources/") || urlLower.includes("/help/") || urlLower.includes("/support/")) {
+          categoriesList = ["Help and Support"];
+        } else if (urlLower.includes("/about/") || urlLower.includes("/careers/") || urlLower.includes("/news/") || urlLower.includes("/board/")) {
+          categoriesList = ["Corporate"];
+        } else if (titleLower.includes("business") || titleLower.includes("sba") || titleLower.includes("commercial")) {
+          categoriesList = ["Business"];
+        } else if (titleLower.includes("personal") || titleLower.includes("individual") || titleLower.includes("checking") || titleLower.includes("savings")) {
+          categoriesList = ["Personal"];
+        } else if (titleLower.includes("help") || titleLower.includes("support") || titleLower.includes("contact") || titleLower.includes("calculator") || titleLower.includes("faq")) {
+          categoriesList = ["Help and Support"];
+        } else if (titleLower.includes("about") || titleLower.includes("careers") || titleLower.includes("corporate") || titleLower.includes("board")) {
+          categoriesList = ["Corporate"];
+        } else {
+          categoriesList = ["Personal"];
+        }
+      }
+
+      return {
+        title,
+        url,
+        summary,
+        categories: categoriesList
+      };
+    })
   };
 };
 
@@ -96,7 +143,7 @@ export const siteConfigs: Record<string, SiteConfig> = {
     clientId: 'osp-m2m-communitysavings',
     clientSecret: process.env.COMMUNITYSAVINGS_CLIENT_SECRET || '',
     tenant: 'communitysavings',
-    responseMapper: genericFlatMapper,
+    responseMapper: genericTransparentMapper,
     chatConfig: {
       enabled: true,
       apiBaseUrl: "https://sensei-agents.australiaeast.cloudapp.azure.com/csb",

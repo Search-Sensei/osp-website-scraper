@@ -33,6 +33,12 @@ function initWidget() {
   // Add container div for React
   const reactContainer = document.createElement("div");
   reactContainer.className = "sensei-root-wrapper";
+  if (config.primaryColor) {
+    reactContainer.style.setProperty("--primary-color", config.primaryColor);
+  }
+  if (config.secondaryColor) {
+    reactContainer.style.setProperty("--secondary-color", config.secondaryColor);
+  }
   shadowRoot.appendChild(reactContainer);
 
   // Render React application
