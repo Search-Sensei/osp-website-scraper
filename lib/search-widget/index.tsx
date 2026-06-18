@@ -27,43 +27,40 @@ function initSearchWidget() {
 
   const targetContainer = document.querySelector(containerSelector);
   if (!targetContainer) {
-    console.warn(`[Sensei Search Widget] Target container "${containerSelector}" not found.`);
-    return;
+    console.warn(`[Sensei Search Widget] Target container "${containerSelector}" not found. Skipping main widget render.`);
+  } else {
+    // Create or find our own root wrapper to prevent interference
+    let widgetRoot = document.getElementById("sensei-search-root");
+    if (!widgetRoot) {
+      widgetRoot = document.createElement("div");
+      widgetRoot.id = "sensei-search-root";
+      // Clear the original contents and append our widget root
+      targetContainer.innerHTML = "";
+      targetContainer.appendChild(widgetRoot);
+    }
+
+    // Create Shadow Root for styling encapsulation
+    const shadowRoot = widgetRoot.attachShadow({ mode: "open" });
+
+    // Add the CSS bundle link
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = cssUrl;
+    shadowRoot.appendChild(link);
+
+    // Add React mount container
+    const reactContainer = document.createElement("div");
+    reactContainer.className = "sensei-root-wrapper w-full";
+    shadowRoot.appendChild(reactContainer);
+
+    // Render React Application
+    const root = ReactDOM.createRoot(reactContainer);
+    root.render(
+      <React.StrictMode>
+        <SearchWidget config={config} />
+      </React.StrictMode>
+    );
   }
-
-  // Create or find our own root wrapper to prevent interference
-  let widgetRoot = document.getElementById("sensei-search-root");
-  if (!widgetRoot) {
-    widgetRoot = document.createElement("div");
-    widgetRoot.id = "sensei-search-root";
-    // Clear the original contents and append our widget root
-    targetContainer.innerHTML = "";
-    targetContainer.appendChild(widgetRoot);
-  }
-
-  // Create Shadow Root for styling encapsulation
-  const shadowRoot = widgetRoot.attachShadow({ mode: "open" });
-
-  // Add the CSS bundle link
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = cssUrl;
-  shadowRoot.appendChild(link);
-
-  // Add React mount container
-  const reactContainer = document.createElement("div");
-  reactContainer.className = "sensei-root-wrapper w-full";
-  shadowRoot.appendChild(reactContainer);
-
-  // Render React Application
-  const root = ReactDOM.createRoot(reactContainer);
-  root.render(
-    <React.StrictMode>
-      <SearchWidget config={config} />
-    </React.StrictMode>
-  );
-
-
 
   // Initialize Top Search Bar if container exists
   const topSearchSelector = config.topSearchContainerSelector || "#sensei-top-search-container";
