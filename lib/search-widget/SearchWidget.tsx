@@ -225,7 +225,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
       )}
 
       {/* Loading Skeleton */}
-      {loading && (
+      {loading && results.length === 0 && (
         <div className="space-y-6 py-4">
           {[1, 2, 3].map((n) => (
             <div key={n} className="animate-pulse border-b pb-4">
@@ -245,8 +245,8 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
       )}
 
       {/* Results List & Featured Content */}
-      {!loading && !error && hasSearched && (
-        <div className="space-y-8">
+      {!error && hasSearched && (
+        <div className={`space-y-8 transition-opacity duration-200 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
           {featuredContent.length > 0 && (
             <div className="mb-4">
               {featuredContent.map((feat, idx) => (
@@ -371,7 +371,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
       )}
 
       {/* Pagination Controls */}
-      {!loading && !error && hasSearched && resultsCount > pageSize && (
+      {!error && hasSearched && resultsCount > pageSize && (
         (() => {
           const totalPages = Math.ceil(resultsCount / pageSize);
           if (totalPages <= 1) return null;
@@ -396,7 +396,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
           const pages = getPaginationRange(currentPage, totalPages);
 
           return (
-            <div className="flex justify-center items-center gap-6 mt-12 mb-8 pt-8">
+            <div className={`flex justify-center items-center gap-6 mt-12 mb-8 pt-8 transition-opacity duration-200 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
               {/* First & Prev */}
               <div className="flex items-center gap-4">
                 <button
