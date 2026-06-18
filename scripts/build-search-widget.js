@@ -23,7 +23,17 @@ async function build() {
       platform: 'browser',
       target: ['es2020'],
       define: {
-        'process.env.NODE_ENV': '"production"'
+        'process.env.NODE_ENV': '"production"',
+        'process.env.NEXT_PUBLIC_PAGE_SIZE': JSON.stringify(
+          (() => {
+            const envPath = path.join(__dirname, '..', '.env');
+            if (fs.existsSync(envPath)) {
+              const match = fs.readFileSync(envPath, 'utf8').match(/^NEXT_PUBLIC_PAGE_SIZE=(.*)$/m);
+              if (match) return match[1].trim();
+            }
+            return "10";
+          })()
+        )
       },
       logLevel: 'info'
     });
@@ -38,7 +48,7 @@ async function build() {
     console.log('Compiling CSS with Tailwind v4 CLI...');
     const inputCss = path.join(__dirname, '..', 'lib', 'search-widget', 'search-widget.css');
     const outputCss = path.join(outputDir, 'sensei-search-widget.css');
-    
+
     // Run tailwind CLI
     execSync(`npx @tailwindcss/cli -i "${inputCss}" -o "${outputCss}" --minify`, {
       stdio: 'inherit'

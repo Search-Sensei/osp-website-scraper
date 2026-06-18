@@ -55,7 +55,9 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
 
   const [hasSearched, setHasSearched] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(config.pageSize || 10);
+  const [pageSize, setPageSize] = useState(
+    config.pageSize || (process.env.NEXT_PUBLIC_PAGE_SIZE ? parseInt(process.env.NEXT_PUBLIC_PAGE_SIZE, 10) : 10)
+  );
   const [resultsCount, setResultsCount] = useState(0);
 
   const performSearch = useCallback(async (searchQuery: string, category: string, pageNum: number = 1) => {

@@ -113,7 +113,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ site
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query') || searchParams.get('q') || '';
     const page = parseInt(searchParams.get('page') || '1', 10);
-    const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
+    const pageSize = parseInt(searchParams.get('pageSize') || process.env.NEXT_PUBLIC_PAGE_SIZE || '10', 10);
 
     const config = siteConfigs[siteId.toLowerCase()];
     const tenant = config?.tenant || siteId.toLowerCase();
