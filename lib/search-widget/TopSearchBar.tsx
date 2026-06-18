@@ -33,7 +33,7 @@ export const TopSearchBar: React.FC<TopSearchBarProps> = ({ config }) => {
   };
 
   return (
-    <div style={{ fontFamily }} className="sensei-top-search flex items-center h-full w-full min-w-[300px] md:min-w-[400px] lg:min-w-[550px] xl:min-w-[700px] max-w-[900px] mx-auto">
+    <div style={{ fontFamily }} className="sensei-top-search flex items-center h-full w-full max-w-[600px] md:max-w-[800px] lg:max-w-[1000px] mx-auto">
       <form onSubmit={handleSubmit} className="w-full flex items-center relative">
         <input
           ref={inputRef}
