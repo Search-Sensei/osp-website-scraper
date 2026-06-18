@@ -73,8 +73,10 @@ async function searchOspApi(query: string, accessToken: string, page: number, pa
     body: JSON.stringify({
       profile: 'all',
       query: query,
-      page: page,
-      pageSize: pageSize
+      searchDefinition: {
+        page: page,
+        pageSize: pageSize
+      }
     })
   });
 
