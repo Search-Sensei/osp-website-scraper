@@ -101,8 +101,19 @@ export async function GET(request: Request) {
     // OSP Search API returns structure: { body: { results: [...] } }
     let mappedData = data;
 
-
-
+    // Inject mock featured content if requested
+    if (mappedData && mappedData.body) {
+      mappedData.body.featured = [
+        {
+          "query": "home loan",
+          "type": 0,
+          "position": "top",
+          "title": "FeaturedContent_61",
+          "content": "\u003ch2\u003e\u003ca href=\"/content/nabrwd/en/personal/home-loans.html\" target=\"_self\" rel=\"noopener noreferrer\"\u003e\u003cstrong\u003eHome loans\u003c/strong\u003e\u003c/a\u003e\u003c/h2\u003e\n\u003cp\u003eWe have tools, calculators &#97;nd guides to help you choose the right home loan for you.\u003c/p\u003e\n\u003cp\u003e\u003ca href=\"/content/nabrwd/en/personal/home-loans.html\" target=\"_self\" rel=\"noopener noreferrer\"\u003eDiscover more\u003c/a\u003e\u003c/p\u003e\n",
+          "imageReference": ""
+        }
+      ];
+    }
     // Filter results on the server-side by category if requested
     if (category && category.toLowerCase() !== 'all' && mappedData) {
       const resultsArray = mappedData.body && mappedData.body.results;

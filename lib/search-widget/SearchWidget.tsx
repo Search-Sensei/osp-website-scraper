@@ -11,6 +11,7 @@ export interface SearchConfig {
   containerSelector?: string;
   basePath?: string;
   pageSize?: number;
+  theme?: "light" | "dark";
 }
 
 interface SearchItem {
@@ -45,6 +46,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [results, setResults] = useState<SearchItem[]>([]);
+  const [featuredContent, setFeaturedContent] = useState<any[]>([]);
   const [navigators, setNavigators] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +82,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
       const data = await res.json();
       const items = data.results || (data.body && data.body.results) || [];
       const navs = data.navigators || (data.body && data.body.navigators) || [];
+      const featured = data.featured || (data.body && data.body.featured) || [];
 
       const totalResults = data.resultsCount ?? data.body?.resultsCount ?? data.body?.searchDefinition?.totalResults ?? 0;
       // The API doesn't support pagination properly, so we use our requested page/size
@@ -96,6 +99,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
 
       setResults(paginatedItems);
       setNavigators(navs);
+      setFeaturedContent(featured);
       setResultsCount(totalResults);
       setCurrentPage(returnedPage);
       setPageSize(returnedPageSize);
@@ -237,9 +241,50 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
         </div>
       )}
 
-      {/* Results List */}
+      {/* Results List & Featured Content */}
       {!loading && !error && hasSearched && (
         <div className="space-y-6">
+          {featuredContent.length > 0 && (
+            <div className="mb-4">
+              {featuredContent.map((feat, idx) => (
+                <div 
+                  key={`feat-${idx}`}
+                  className="bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow p-6 mb-4 featured-content-card"
+                  style={{ borderColor: borderColor }}
+                >
+                  <style>{`
+                    .featured-content-card h2 {
+                      font-size: 1.25rem;
+                      font-weight: 700;
+                      margin-bottom: 0.5rem;
+                    }
+                    .featured-content-card h2 a {
+                      color: ${primaryColor};
+                      text-decoration: none;
+                    }
+                    .featured-content-card h2 a:hover {
+                      text-decoration: underline;
+                    }
+                    .featured-content-card p {
+                      color: #334155;
+                      margin-bottom: 0.75rem;
+                      line-height: 1.6;
+                    }
+                    .featured-content-card p a {
+                      color: ${primaryColor};
+                      text-decoration: underline;
+                      font-weight: 500;
+                    }
+                    .featured-content-card p:last-child {
+                      margin-bottom: 0;
+                    }
+                  `}</style>
+                  <div dangerouslySetInnerHTML={{ __html: feat.content }} />
+                </div>
+              ))}
+            </div>
+          )}
+
           {results.length === 0 ? (
             <div className="text-center py-12">
               <h3 className="text-lg font-medium text-slate-600">
