@@ -396,7 +396,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
           const pages = getPaginationRange(currentPage, totalPages);
 
           return (
-            <div className={`flex justify-center items-center gap-6 mt-12 mb-8 pt-8 transition-opacity duration-200 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className="flex justify-center items-center gap-6 mt-12 mb-8 pt-8 border-t" style={{ borderColor: borderColor }}>
               {/* First & Prev */}
               <div className="flex items-center gap-4">
                 <button
