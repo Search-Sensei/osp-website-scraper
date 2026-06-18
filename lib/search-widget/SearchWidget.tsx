@@ -15,12 +15,14 @@ export interface SearchConfig {
 }
 
 interface SearchItem {
-  title: string;
-  url: string;
+  title?: string;
+  url?: string;
   summary?: string;
   body?: string;
-  categories?: string[];
   category?: string | string[];
+  categories?: string | string[];
+  source?: string | string[];
+  [key: string]: any;
 }
 
 interface SearchWidgetProps {
@@ -156,6 +158,9 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
     if (typeof item.categories === "string") return [item.categories];
     if (item.category) {
       return Array.isArray(item.category) ? item.category : [item.category];
+    }
+    if (item.source) {
+      return Array.isArray(item.source) ? item.source : [item.source];
     }
     return [];
   };
@@ -310,7 +315,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     {topResults.map((item, index) => {
                       const displayCats = getDisplayCategories(item);
-                      const firstCat = displayCats.length > 0 ? displayCats[0] : "Result";
+                      const firstCat = displayCats.length > 0 ? displayCats[0] : null;
                       const summaryText =
                         item.summary ||
                         (item.body
@@ -322,11 +327,13 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                       return (
                         <div key={`top-${index}`} className="bg-white rounded-xl border shadow-sm p-6 flex flex-col h-full hover:shadow-md transition-shadow" style={{ borderColor: borderColor }}>
                           <h3 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
-                          <div className="mb-3">
-                            <span className="inline-block px-3 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded-full">
-                              {firstCat}
-                            </span>
-                          </div>
+                          {firstCat && (
+                            <div className="mb-3">
+                              <span className="inline-block px-3 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded-full">
+                                {firstCat}
+                              </span>
+                            </div>
+                          )}
                           <p className="text-sm text-slate-600 flex-grow leading-relaxed">{summaryText}</p>
                           <div className="mt-6 text-right">
                             <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold hover:underline" style={{ color: primaryColor }}>
@@ -342,7 +349,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                     <div className="bg-white rounded-xl border shadow-sm divide-y" style={{ borderColor: borderColor }}>
                       {remainingResults.map((item, index) => {
                         const displayCats = getDisplayCategories(item);
-                        const firstCat = displayCats.length > 0 ? displayCats[0] : "Result";
+                        const firstCat = displayCats.length > 0 ? displayCats[0] : null;
                         const summaryText =
                           item.summary ||
                           (item.body
@@ -358,11 +365,13 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                                 <h4 className="text-base font-bold text-slate-900 mb-1 group-hover:underline">{item.title}</h4>
                                 <p className="text-sm text-slate-500 line-clamp-2">{summaryText}</p>
                               </div>
-                              <div className="flex-shrink-0 flex items-center justify-end">
-                                <span className="text-sm font-semibold text-slate-900 flex items-center gap-1 whitespace-nowrap">
-                                  {firstCat} <span className="ml-1 text-slate-400 font-bold">&gt;</span>
-                                </span>
-                              </div>
+                              {firstCat && (
+                                <div className="flex-shrink-0 flex items-center justify-end">
+                                  <span className="text-sm font-semibold text-slate-900 flex items-center gap-1 whitespace-nowrap">
+                                    {firstCat} <span className="ml-1 text-slate-400 font-bold">&gt;</span>
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </a>
                         );
@@ -387,7 +396,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
             let delta = 2;
             if (c === 1 || c === t) delta = 4;
             else if (c === 2 || c === t - 1) delta = 3;
-            
+
             const range: (number | string)[] = [];
             for (let i = Math.max(2, c - delta); i <= Math.min(t - 1, c + delta); i++) {
               range.push(i);
@@ -429,10 +438,10 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                   if (item === "...") {
                     return <span key={`ellipsis-${idx}`} className="text-slate-800 font-bold text-base px-1">...</span>;
                   }
-                  
+
                   const pageNum = item as number;
                   const isActive = currentPage === pageNum;
-                  
+
                   return (
                     <button
                       key={`page-${pageNum}`}
