@@ -23,7 +23,7 @@ async function test() {
   }
 
   try {
-    const res = await fetch("https://20.70.168.13/kong/api/search/all/suggested/bank", {
+    const res = await fetch("https://20.70.168.13/osp-backend-api/search/all/suggested/bank", {
       method: 'GET',
       headers: {
         "x-active-tenant": "communitysavings",
@@ -37,7 +37,7 @@ async function test() {
   }
 
   try {
-    const res = await fetch("https://20.70.168.13/kong/api/search/all/suggested/bank", {
+    const res = await fetch("https://20.70.168.13/osp-backend-api/search/all/suggested/bank", {
       method: 'POST',
       headers: {
         "x-active-tenant": "communitysavings",

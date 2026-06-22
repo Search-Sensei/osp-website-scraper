@@ -18,7 +18,7 @@ async function test() {
   const token = tokenData.access_token;
   
   try {
-    const res = await fetch("https://20.70.168.13/kong/api/search", {
+    const res = await fetch("https://20.70.168.13/osp-backend-api/search", {
       method: 'POST',
       headers: {
         "x-active-tenant": "communitysavings",

@@ -70,8 +70,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ site
       throw new Error('OSP_SEARCH_API_URL is not defined in environment variables');
     }
 
-    // e.g. targetUrl is https://20.70.168.13/kong/api/search
-    // We want /kong/api/search/all/suggested/{keyword}
+    // e.g. targetUrl is https://20.70.168.13/osp-backend-api/search
+    // We want /osp-backend-api/search/all/suggested/{keyword}
     targetUrl = `${targetUrl}/all/suggested/${encodeURIComponent(keyword)}`;
 
     const fetchHeaders: Record<string, string> = {

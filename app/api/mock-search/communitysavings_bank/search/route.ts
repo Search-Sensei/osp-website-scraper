@@ -97,21 +97,63 @@ export async function GET(request: Request) {
     const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
 
     const accessToken = await getAccessToken();
-    const data = await searchOspApi(query, accessToken, page, pageSize);
+    
+    // Fetch a large page (100) from OSP API because OSP API doesn't filter by category natively,
+    // so we need enough items to manually filter and paginate.
+    const data = await searchOspApi(query, accessToken, 1, 100);
 
-    // This is a transparent API, so we return exactly the data from OSP Search API
-    // OSP Search API returns structure: { body: { results: [...] } }
     let mappedData = data;
 
     // Filter results on the server-side by category if requested
-    if (category && category.toLowerCase() !== 'all' && mappedData) {
-      const resultsArray = mappedData.body && mappedData.body.results;
-      if (Array.isArray(resultsArray)) {
+    if (mappedData && mappedData.body && Array.isArray(mappedData.body.results)) {
+      const resultsArray = mappedData.body.results;
+      
+      // Assign heuristic categories to items if missing
+      resultsArray.forEach((item: any) => {
+        if (!item.categories) {
+          const urlLower = (item.url || '').toLowerCase();
+          const titleLower = (item.title || '').toLowerCase();
+          
+          if (urlLower.includes("/business/") || titleLower.includes("business") || titleLower.includes("commercial")) {
+            item.categories = ["Business"];
+          } else if (urlLower.includes("/individuals/") || urlLower.includes("/personal/") || titleLower.includes("individual")) {
+            item.categories = ["Individuals"];
+          } else if (urlLower.includes("/contact/") || titleLower.includes("contact")) {
+            item.categories = ["Contact"];
+          } else if (urlLower.includes("/resources/") || titleLower.includes("resource")) {
+            item.categories = ["Resources"];
+          } else if (urlLower.includes("e-statements") || titleLower.includes("statement")) {
+            item.categories = ["E and Statements"];
+          } else if (urlLower.includes("i-want-to") || titleLower.includes("want to")) {
+            item.categories = ["I and Want and To"];
+          } else {
+            // Default fallback
+            item.categories = ["Individuals"];
+          }
+        }
+      });
+
+      // Now apply the category filter
+      if (category && category.toLowerCase() !== 'all') {
         mappedData.body.results = resultsArray.filter((item: any) => {
-          const itemCats = item.categories || [];
+          let itemCats: string[] = [];
+          if (Array.isArray(item.categories)) {
+            itemCats = item.categories;
+          } else if (typeof item.categories === 'string') {
+            itemCats = [item.categories];
+          } else if (item.category) {
+            itemCats = Array.isArray(item.category) ? item.category : [item.category];
+          } else if (item.source) {
+            itemCats = Array.isArray(item.source) ? item.source : [item.source];
+          }
           return itemCats.some((c: string) => c.toLowerCase() === category.toLowerCase());
         });
       }
+
+      // Update results count and paginate manually
+      mappedData.body.resultsCount = mappedData.body.results.length;
+      const start = (page - 1) * pageSize;
+      mappedData.body.results = mappedData.body.results.slice(start, start + pageSize);
     }
 
     return NextResponse.json(mappedData, {
