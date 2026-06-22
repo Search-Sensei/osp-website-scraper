@@ -23,7 +23,7 @@ export default function ReplicationTable({ sites }: { sites: any[] }) {
                   <td className="px-6 py-4 font-medium text-gray-900">{site.client_name}</td>
                   <td className="px-6 py-4 text-gray-500 font-mono text-xs">public{site.cloned_path}</td>
                   <td className="px-6 py-4 space-x-3 flex items-center">
-                    <a href={`/scraper${site.cloned_path}`} target="_blank" className="font-medium text-blue-600 hover:underline">
+                    <a href={`/scraper${site.cloned_path}?q=loan`} target="_blank" className="font-medium text-blue-600 hover:underline">
                       View Local Site
                     </a>
                   </td>
