@@ -51,7 +51,7 @@ async function getAccessToken(): Promise<string> {
   return tokenData.access_token;
 }
 
-async function searchOspApi(query: string, accessToken: string, page: number, pageSize: number): Promise<any> {
+async function searchOspApi(query: string, accessToken: string, page: number, pageSize: number, category: string | null): Promise<any> {
   const targetUrl = process.env.OSP_SEARCH_API_URL;
   if (!targetUrl) {
     throw new Error('OSP_SEARCH_API_URL is not defined in environment variables');
@@ -67,17 +67,23 @@ async function searchOspApi(query: string, accessToken: string, page: number, pa
     fetchHeaders['Authorization'] = `Bearer ${accessToken}`;
   }
 
+  const payload: any = {
+    profile: 'all',
+    query: query,
+    searchDefinition: {
+      page: page,
+      pageSize: pageSize
+    }
+  };
+
+  if (category && category.toLowerCase() !== 'all') {
+    payload.filterData = `( category eq '${category}' )`;
+  }
+
   const response = await fetch(targetUrl, {
     method: 'POST',
     headers: fetchHeaders,
-    body: JSON.stringify({
-      profile: 'all',
-      query: query,
-      searchDefinition: {
-        page: page,
-        pageSize: pageSize
-      }
-    })
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
@@ -98,65 +104,10 @@ export async function GET(request: Request) {
 
     const accessToken = await getAccessToken();
     
-    // Fetch a large page (100) from OSP API because OSP API doesn't filter by category natively,
-    // so we need enough items to manually filter and paginate.
-    const data = await searchOspApi(query, accessToken, 1, 100);
+    // Pass the category to let the backend API handle the filtering
+    const data = await searchOspApi(query, accessToken, page, pageSize, category);
 
-    let mappedData = data;
-
-    // Filter results on the server-side by category if requested
-    if (mappedData && mappedData.body && Array.isArray(mappedData.body.results)) {
-      const resultsArray = mappedData.body.results;
-      
-      // Assign heuristic categories to items if missing
-      resultsArray.forEach((item: any) => {
-        if (!item.categories) {
-          const urlLower = (item.url || '').toLowerCase();
-          const titleLower = (item.title || '').toLowerCase();
-          
-          if (urlLower.includes("/business/") || titleLower.includes("business") || titleLower.includes("commercial")) {
-            item.categories = ["Business"];
-          } else if (urlLower.includes("/individuals/") || urlLower.includes("/personal/") || titleLower.includes("individual")) {
-            item.categories = ["Individuals"];
-          } else if (urlLower.includes("/contact/") || titleLower.includes("contact")) {
-            item.categories = ["Contact"];
-          } else if (urlLower.includes("/resources/") || titleLower.includes("resource")) {
-            item.categories = ["Resources"];
-          } else if (urlLower.includes("e-statements") || titleLower.includes("statement")) {
-            item.categories = ["E and Statements"];
-          } else if (urlLower.includes("i-want-to") || titleLower.includes("want to")) {
-            item.categories = ["I and Want and To"];
-          } else {
-            // Default fallback
-            item.categories = ["Individuals"];
-          }
-        }
-      });
-
-      // Now apply the category filter
-      if (category && category.toLowerCase() !== 'all') {
-        mappedData.body.results = resultsArray.filter((item: any) => {
-          let itemCats: string[] = [];
-          if (Array.isArray(item.categories)) {
-            itemCats = item.categories;
-          } else if (typeof item.categories === 'string') {
-            itemCats = [item.categories];
-          } else if (item.category) {
-            itemCats = Array.isArray(item.category) ? item.category : [item.category];
-          } else if (item.source) {
-            itemCats = Array.isArray(item.source) ? item.source : [item.source];
-          }
-          return itemCats.some((c: string) => c.toLowerCase() === category.toLowerCase());
-        });
-      }
-
-      // Update results count and paginate manually
-      mappedData.body.resultsCount = mappedData.body.results.length;
-      const start = (page - 1) * pageSize;
-      mappedData.body.results = mappedData.body.results.slice(start, start + pageSize);
-    }
-
-    return NextResponse.json(mappedData, {
+    return NextResponse.json(data, {
       headers: {
         'Access-Control-Allow-Origin': '*'
       }

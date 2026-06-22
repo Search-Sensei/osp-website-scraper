@@ -47,7 +47,7 @@ async function getAccessToken(siteId: string): Promise<string> {
 
   const tokenData = await tokenResponse.json();
   const expiresIn = tokenData.expires_in || 300;
-  
+
   tokenCacheMap[cacheKey] = {
     accessToken: tokenData.access_token,
     expiresAt: Date.now() + (expiresIn * 1000)
@@ -70,9 +70,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ site
       throw new Error('OSP_SEARCH_API_URL is not defined in environment variables');
     }
 
-    // e.g. targetUrl is https://20.70.168.13/osp-backend-api/search
-    // We want /osp-backend-api/search/all/suggested/{keyword}
-    targetUrl = `${targetUrl}/all/suggested/${encodeURIComponent(keyword)}`;
+    // Use the legacy suggestion endpoint format
+    const baseUrl = targetUrl.replace(/\/search\/?$/, '');
+    const suggestionUrl = `${baseUrl}/search/all/suggested/${encodeURIComponent(keyword)}`;
 
     const fetchHeaders: Record<string, string> = {
       'Accept': 'application/json',
@@ -84,7 +84,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ site
       fetchHeaders['Authorization'] = `Bearer ${accessToken}`;
     }
 
-    const response = await fetch(targetUrl, {
+    const response = await fetch(suggestionUrl, {
       method: 'POST',
       headers: fetchHeaders,
       body: JSON.stringify({
@@ -96,7 +96,28 @@ export async function GET(request: Request, { params }: { params: Promise<{ site
       throw new Error(`External API returned status: ${response.status}`);
     }
 
-    const data = await response.json();
+    let data = await response.json();
+
+    // Map the old legacy response format to the expected format for NativeInputAutocomplete
+    // The legacy API returns { body: { suggested: ["...", "..."] } }
+    if (data && data.body && Array.isArray(data.body.suggested)) {
+      data = {
+        ...data,
+        body: {
+          ...data.body,
+          suggestions: data.body.suggested
+        }
+      };
+    } else if (data && data.body && Array.isArray(data.body.result)) {
+      // Keep support for the new API format just in case it switches back
+      data = {
+        ...data,
+        body: {
+          ...data.body,
+          suggestions: data.body.result.map((item: any) => item.suggestion || item.query)
+        }
+      };
+    }
 
     return NextResponse.json(data, {
       headers: {
