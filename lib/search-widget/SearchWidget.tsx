@@ -154,7 +154,6 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
     performSearch(query, cat, 1);
   };
 
-  // Helper to extract categories from search item
   const getDisplayCategories = (item: SearchItem): string[] => {
     if (Array.isArray(item.categories)) return item.categories;
     if (typeof item.categories === "string") return [item.categories];
@@ -331,13 +330,11 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                       return (
                         <div key={`top-${index}`} className="bg-white rounded-xl border shadow-sm p-6 flex flex-col h-full hover:shadow-md transition-shadow" style={{ borderColor: borderColor }}>
                           <h3 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
-                          {firstCat && (
-                            <div className="mb-3">
-                              <span className="inline-block px-3 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded-full">
-                                {firstCat}
-                              </span>
-                            </div>
-                          )}
+                          <div className="mb-3">
+                            <span className="inline-block px-3 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded-full">
+                              {firstCat || "-"}
+                            </span>
+                          </div>
                           <p className="text-sm text-slate-600 flex-grow leading-relaxed">{summaryText}</p>
                           <div className="mt-6 text-right">
                             <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold hover:underline" style={{ color: primaryColor }}>
@@ -369,13 +366,11 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                                 <h4 className="text-base font-bold text-slate-900 mb-1 group-hover:underline">{item.title}</h4>
                                 <p className="text-sm text-slate-500 line-clamp-2">{summaryText}</p>
                               </div>
-                              {firstCat && (
-                                <div className="flex-shrink-0 flex items-center justify-end">
-                                  <span className="text-sm font-semibold text-slate-900 flex items-center gap-1 whitespace-nowrap">
-                                    {firstCat} <span className="ml-1 text-slate-400 font-bold">&gt;</span>
-                                  </span>
-                                </div>
-                              )}
+                              <div className="flex-shrink-0 flex items-center justify-end">
+                                <span className="text-sm font-semibold text-slate-900 flex items-center gap-1 whitespace-nowrap">
+                                  {firstCat || "-"} <span className="ml-1 text-slate-400 font-bold">&gt;</span>
+                                </span>
+                              </div>
                             </div>
                           </a>
                         );
