@@ -151,7 +151,7 @@ export const siteConfigs: Record<string, SiteConfig> = {
       buttonText: "Message Us",
       primaryColor: "#af192a",
       secondaryColor: "#af192a",
-      logoUrl: "/scraper/sites/communitysavings_bank/fonts/csb-iowa-logo.svg"
+      logoUrl: "/scraper/sites/communitysavings_bank/fonts/small2-csb-iowa-logo.svg"
     }
   },
   'peapackprivate_com': {
