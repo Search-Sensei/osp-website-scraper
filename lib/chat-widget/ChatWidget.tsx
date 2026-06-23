@@ -60,8 +60,14 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
   const resolveAssetUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) return url;
+    
+    // Check if it's a raw base64 string (long, no path chars like '.', mostly alphanumeric/+/=)
+    if (url.length > 100 && !url.includes('.') && /^[a-zA-Z0-9+/=\s]+$/.test(url)) {
+      return `data:image/png;base64,${url.trim()}`;
+    }
+
     if (typeof window !== "undefined") {
-      return `${window.location.origin}${url}`;
+      return url.startsWith('/') ? `${window.location.origin}${url}` : `${window.location.origin}/${url}`;
     }
     return url;
   };
@@ -216,7 +222,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
             title: a.job,
             description: a.job,
             expertise: [a.job],
-            avatar: a.profile_photo,
+            avatar: a.image || a.profile_photo,
             color: a.chat_box_border_color,
             backendName: a.agent_name,
             status: a.default_responder ? "involved" : undefined
@@ -1295,7 +1301,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
 
       {/* Agent Details Tab */}
       {showAgentDetails && selectedAgent && (
-        <div className="fixed bottom-0 right-[1170px] w-96 h-[560px] bg-white border border-gray-300 shadow-2xl z-[98] transition-all duration-300 ease-in-out">
+        <div className="fixed bottom-0 right-[820px] w-96 h-[560px] bg-white border border-gray-300 shadow-2xl z-[98] transition-all duration-300 ease-in-out">
           <div className="bg-[var(--primary-color)] py-3 px-4 flex items-center justify-between">
             <h3 className="text-white font-semibold text-lg">Agent Details</h3>
             <button 
