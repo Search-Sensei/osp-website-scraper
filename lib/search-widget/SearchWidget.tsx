@@ -187,7 +187,9 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
   const getCategoriesList = (): string[] => {
     const categoryNav = navigators.find(n => n.name === "category");
     if (categoryNav && Array.isArray(categoryNav.items) && categoryNav.items.length > 0) {
-      const apiCats = categoryNav.items.map((i: any) => i.name);
+      const apiCats = categoryNav.items
+        .filter((i: any) => parseInt(i.count, 10) > 1)
+        .map((i: any) => i.name);
       return ["All", ...apiCats];
     }
     return ["All"];
