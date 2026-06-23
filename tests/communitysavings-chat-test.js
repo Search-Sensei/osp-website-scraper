@@ -39,6 +39,17 @@ const path = require('path');
     const chatPanel = page.locator('#sensei-chat-root').locator(`p:has-text("${expectedTitle}")`).first();
     await chatPanel.waitFor({ state: 'visible', timeout: 5000 });
     console.log('ChatBox panel is visible.');
+
+    console.log('Verifying logo image dimensions...');
+    const logoImg = page.locator('#sensei-chat-root img[alt="logo"]').first();
+    await logoImg.waitFor({ state: 'visible', timeout: 5000 });
+    const boundingBox = await logoImg.boundingBox();
+    console.log(`Logo dimensions: width=${boundingBox.width}px, height=${boundingBox.height}px`);
+    if (boundingBox.width !== 48 || boundingBox.height !== 48) {
+      console.error(`Error: Logo size is not exactly 48x48. It is ${boundingBox.width}x${boundingBox.height}`);
+      process.exit(1);
+    }
+    console.log('Logo size is successfully verified as 48x48!');
     
     // Save screenshots to verify visual state
     const openScreenshotPath = path.join(__dirname, '..', 'public', 'assets', 'csb-chat-open.png');

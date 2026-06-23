@@ -837,7 +837,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
 
         {activeTab === 'group' && (
           <div className="bg-[var(--primary-color)] flex items-center py-4 space-x-5 pl-5">
-            <img onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = DEFAULT_AVATAR; }} src={resolveAssetUrl(logoUrl)} alt="logo" className="w-12 h-12 rounded-full object-cover bg-white" />
+            <img onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = DEFAULT_AVATAR; }} src={resolveAssetUrl(logoUrl)} alt="logo" className="w-12 h-12 rounded-full object-contain p-[6px] bg-white" />
             <div className="flex-col">
               <p className="text-white font-medium">Chat with us 24/7</p>
             </div>

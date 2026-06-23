@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="Layer_1"
+   data-name="Layer 1"
+   viewBox="0 0 39.945966 28.159785"
+   version="1.1"
+   sodipodi:docname="small-csb-iowa-logo.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   inkscape:export-filename="new-csb-logo.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   width="39.945965"
+   height="28.159786"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview23"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.7978483"
+     inkscape:cx="117.17161"
+     inkscape:cy="21.196213"
+     inkscape:window-width="2494"
+     inkscape:window-height="1043"
+     inkscape:window-x="2626"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1"
+     inkscape:export-bgcolor="#ffffff00" />
+  <defs
+     id="defs1">
+    <style
+       id="style1">.cls-1{fill:#666;}.cls-2{fill:#af192a;}.cls-3{fill:none;stroke:#666;stroke-linecap:round;stroke-width:0.58px;}</style>
+  </defs>
+  <path
+     class="cls-1"
+     d="M 20.671386,10.207923 V 7.365378 a 3.3207294,3.3207294 0 0 1 3.214465,3.320731 h 3.74578 A 7.046589,7.046589 0 0 0 20.671386,3.6129534 V 0.18596082 H 20.538554 V 3.6129534 a 7.046589,7.046589 0 0 0 0,14.0931746 v 2.855828 a 3.3207294,3.3207294 0 0 1 -3.254313,-3.320729 h -3.745783 a 7.046589,7.046589 0 0 0 7.000096,7.066513 v 3.453556 h 0.132832 V 24.30774 a 7.046589,7.046589 0 0 0 0,-14.093178 z m -3.387145,0.444975 a 3.3207294,3.3207294 0 0 1 3.254313,-3.3207261 v 6.6016041 a 3.3207294,3.3207294 0 0 1 -3.254313,-3.274238 z m 3.387145,9.895776 v -6.581687 a 3.3207294,3.3207294 0 0 1 0,6.588327 z"
+     id="path21"
+     style="stroke-width:0.66414" />
+  <path
+     class="cls-2"
+     d="M 39.944894,9.8891314 A 6.1101418,6.1101418 0 0 0 33.834756,3.77899 h -5.04751 v 3.7723482 h 5.04751 a 2.3643592,2.3643592 0 0 1 0,4.7287138 h -5.04751 v 3.75243 h 5.04751 a 2.3643595,2.3643595 0 1 1 0,4.728717 h -5.04751 v 3.745784 h 5.04751 A 6.1101418,6.1101418 0 0 0 38.23804,14.159586 6.1167834,6.1167834 0 0 0 39.944894,9.8891314 Z"
+     id="path22"
+     style="stroke-width:0.66414" />
+  <path
+     class="cls-2"
+     d="m 10.616215,7.5513382 h 2.304586 V 3.77899 h -2.304586 a 10.354032,10.354032 0 1 0 0,20.701424 h 2.304586 v -3.745782 h -2.304586 a 6.6082511,6.6082511 0 0 1 0,-13.2098582 z"
+     id="path23"
+     style="stroke-width:0.66414" />
+  <line
+     class="cls-3"
+     x1="20.591692"
+     y1="27.967184"
+     x2="20.591692"
+     y2="0.19260238"
+     id="line23" />
+</svg>
