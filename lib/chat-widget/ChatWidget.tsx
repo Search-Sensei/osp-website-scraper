@@ -60,8 +60,14 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
   const resolveAssetUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) return url;
+    
+    // Check if it's a raw base64 string (long, no path chars like '.', mostly alphanumeric/+/=)
+    if (url.length > 100 && !url.includes('.') && /^[a-zA-Z0-9+/=\s]+$/.test(url)) {
+      return `data:image/png;base64,${url.trim()}`;
+    }
+
     if (typeof window !== "undefined") {
-      return `${window.location.origin}${url}`;
+      return url.startsWith('/') ? `${window.location.origin}${url}` : `${window.location.origin}/${url}`;
     }
     return url;
   };
