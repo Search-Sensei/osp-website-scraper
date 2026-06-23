@@ -1,0 +1,48 @@
+{
+  "name": "osp-website-scraper",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "clone": "tsx scripts/clone.ts",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "scrape": "tsx scripts/scrape.ts",
+    "build:chat-widget": "node scripts/build-chat-widget.js",
+    "build:search-widget": "node scripts/build-search-widget.js",
+    "build:widgets": "npm run build:chat-widget && npm run build:search-widget"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@octokit/rest": "^22.0.1",
+    "next": "16.2.9",
+    "puppeteer": "^25.1.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.1",
+    "website-scraper": "^6.0.0",
+    "website-scraper-puppeteer": "^2.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.0",
+    "@tailwindcss/cli": "^4.3.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "commander": "^14.0.3",
+    "esbuild": "^0.28.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9",
+    "jest": "^30.4.2",
+    "playwright": "^1.60.0",
+    "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.22.4",
+    "typescript": "^5"
+  }
+}

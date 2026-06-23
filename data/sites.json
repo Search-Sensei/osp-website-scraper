@@ -1,0 +1,21 @@
+[
+  {
+    "id": "community_savings_bank",
+    "client_name": "Community Savings Bank",
+    "source_url": "https://www.communitysavings.bank/search",
+    "status": "COMPLETED",
+    "cloned_path": "/sites/community_savings_bank/index.html",
+    "created_at": "2026-06-11T16:11:26.127Z",
+    "config": {
+      "apiUrl": "http://localhost:8080/api/v1/search",
+      "inputSelector": "input[name='q']",
+      "resultsSelector": ".search-results",
+      "mapping": {
+        "resultsPath": "data.results",
+        "titleField": "title",
+        "snippetField": "excerpt",
+        "urlField": "url"
+      }
+    }
+  }
+]
