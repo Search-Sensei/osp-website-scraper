@@ -86,5 +86,8 @@ jobs:
             # Pass variables directly to sudo environment so docker compose picks them up
             sudo IMAGE="$IMAGE" GITHUB_PAT="$GITHUB_PAT" GITHUB_REPO_OWNER="$GITHUB_REPO_OWNER" docker-compose up -d
 
+            echo "==> Cleaning up dangling images..."
+            sudo docker image prune -f
+
             echo "==> osp-website-scraper deployed successfully!"
 
