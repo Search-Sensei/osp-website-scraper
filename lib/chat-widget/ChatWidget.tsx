@@ -216,7 +216,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
             title: a.job,
             description: a.job,
             expertise: [a.job],
-            avatar: a.profile_photo,
+            avatar: a.image || a.profile_photo,
             color: a.chat_box_border_color,
             backendName: a.agent_name,
             status: a.default_responder ? "involved" : undefined
