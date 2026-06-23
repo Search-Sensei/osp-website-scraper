@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  scraper:
+    image: ${IMAGE}
+    container_name: osp-website-scraper
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    env_file:
+      - .env
+    environment:
+      GITHUB_PAT: ${GITHUB_PAT}
+      GITHUB_REPO_OWNER: ${GITHUB_REPO_OWNER}
+      GITHUB_REPO_NAME: osp-website-scraper
