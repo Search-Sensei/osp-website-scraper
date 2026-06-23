@@ -1301,7 +1301,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ config }) => {
 
       {/* Agent Details Tab */}
       {showAgentDetails && selectedAgent && (
-        <div className="fixed bottom-0 right-[1170px] w-96 h-[560px] bg-white border border-gray-300 shadow-2xl z-[98] transition-all duration-300 ease-in-out">
+        <div className="fixed bottom-0 right-[820px] w-96 h-[560px] bg-white border border-gray-300 shadow-2xl z-[98] transition-all duration-300 ease-in-out">
           <div className="bg-[var(--primary-color)] py-3 px-4 flex items-center justify-between">
             <h3 className="text-white font-semibold text-lg">Agent Details</h3>
             <button 
