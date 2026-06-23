@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-color: var(--primary-color, #0085d5);
+  --color-secondary-color: var(--secondary-color, #00426A);
+
+  /* Decouple spacing scale from rem/root font size by using pixels */
+  --spacing: 4px;
+
+  /* Decouple font sizes from root font size */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --text-4xl: 36px;
+
+  /* Decouple border-radius from root font size */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+}
+
+.sensei-root-wrapper {
+  font-size: 16px !important;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+
+.agilent-title:hover {
+  color: #3B82F6 !important;
+}
+
+.team-button:hover {
+  color: #6B7280 !important;
+}
+
+.typewriter p {
+  overflow: hidden;
+  border-right: .15em solid orange;
+  white-space: nowrap;
+  margin: 0 auto;
+  letter-spacing: .15em;
+  animation:
+    typing 3.5s steps(40, end),
+    blink-caret .75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: orange; }
+}
+
+/* Scoped markdown styling inside chat bubbles */
+.markdown-content a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.markdown-content a:hover {
+  color: #1d4ed8;
+}
+.markdown-content h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.markdown-content h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.markdown-content h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.markdown-content ul {
+  list-style-type: disc;
+  margin-left: 16px;
+  margin-bottom: 8px;
+}
+.markdown-content ol {
+  list-style-type: decimal;
+  margin-left: 16px;
+  margin-bottom: 8px;
+}
+.markdown-content li {
+  margin-bottom: 4px;
+}
+.markdown-content p {
+  margin-bottom: 8px;
+}
+.markdown-content strong {
+  font-weight: 700;
+}
+.markdown-content em {
+  font-style: italic;
+}
+.markdown-content code {
+  background-color: #f3f4f6;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.markdown-content pre {
+  background-color: #f3f4f6;
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+.markdown-content blockquote {
+  border-left-width: 4px;
+  border-left-color: #d1d5db;
+  padding-left: 16px;
+  font-style: italic;
+}

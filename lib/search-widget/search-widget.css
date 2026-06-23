@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-color: var(--primary-color, #af192a);
+  --color-accent-color: var(--accent-color, #115e6b);
+  --color-accent-bg-color: var(--accent-bg-color, #bfe3e8);
+  --color-border-color: var(--border-color, #c5cdd6);
+
+  /* Decouple spacing scale from rem/root font size by using pixels */
+  --spacing: 4px;
+
+  /* Decouple font sizes from root font size */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --text-4xl: 36px;
+
+  /* Decouple border-radius from root font size */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+}
+
+.sensei-root-wrapper {
+  font-size: 16px !important;
+  color-scheme: light;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.search-spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--primary-color, #af192a);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}

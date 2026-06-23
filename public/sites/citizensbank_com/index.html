@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<!DOCTYPE HTML><html lang="en" prefix="og: http://ogp.me/ns#">
+   <head>
+    <script>
+        // Reverse Proxy Configuration
+        const proxyConfig = [
+            { match: 'yext.com', endpoint: '/scraper/api/mock-search/citizensbank_com' },
+            { match: 'yextpages.net', endpoint: '/scraper/api/mock-search/citizensbank_com' }
+        ];
+
+        // Block requests to telemetry and ads
+        const blockedDomains = ['celebrus', 'qualtrics.com', 'doubleclick.net', 'googletagmanager.com', 'google-analytics.com', 'googleadservices.com', 'fbevents.js', 'facebook.com', 'adsystem.com', 'ad.doubleclick.net', 'trustarc.com', 'adobedtm.com', 'dotcomAnalytics'];
+        const isBlocked = (url) => typeof url === 'string' && blockedDomains.some(d => url.includes(d));
+
+        const rewriteUrl = (url) => {
+            if (typeof url !== 'string') return url;
+            for (const p of proxyConfig) {
+                if (url.includes(p.match)) {
+                    try {
+                        const urlObj = new URL(url);
+                        return window.location.origin + p.endpoint + urlObj.pathname + urlObj.search;
+                    } catch (e) {
+                        return url;
+                    }
+                }
+            }
+            return url;
+        };
+
+        const originalFetch = window.fetch;
+        window.fetch = async function (...args) {
+            let url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
+            if (isBlocked(url)) {
+                console.warn('Blocked native fetch:', url);
+                return new Response(JSON.stringify({}), { status: 200, headers: { 'Content-Type': 'application/json' } });
+            }
+
+            const rewritten = rewriteUrl(url);
+            if (rewritten !== url) {
+                console.log(`Proxying fetch: ${url} -> ${rewritten}`);
+                if (typeof args[0] === 'string') args[0] = rewritten;
+                else if (args[0] && args[0].url) args[0] = new Request(rewritten, args[0]);
+            }
+
+            return originalFetch.apply(this, args);
+        };
+
+        const originalXhrOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+            if (isBlocked(url)) {
+                console.warn('Blocked native XHR:', url);
+                this.send = () => {
+                    Object.defineProperty(this, 'readyState', { value: 4 });
+                    Object.defineProperty(this, 'status', { value: 200 });
+                    Object.defineProperty(this, 'responseText', { value: '{}' });
+                    if (this.onreadystatechange) this.onreadystatechange();
+                    if (this.onload) this.onload();
+                };
+                return;
+            }
+            const rewritten = rewriteUrl(url);
+            if (rewritten !== url) {
+                console.log(`Proxying XHR: ${url} -> ${rewritten}`);
+                url = rewritten;
+            }
+            originalXhrOpen.apply(this, [method, url, ...rest]);
+        };
+
+        const originalSetAttribute = Element.prototype.setAttribute;
+        Element.prototype.setAttribute = function (name, value) {
+            if (this.tagName && this.tagName.toLowerCase() === 'iframe' && name === 'src' && typeof value === 'string') {
+                if (value.includes('pagescdn.com') || value.includes('yext.com') || value.includes('answers.citizensbank.com') || value.includes('yextpages.net')) {
+                    console.log('Intercepting cross-domain iframe setAttribute:', value);
+                    let parsedSearch = '';
+                    try {
+                        const urlObj = new URL(value, window.location.origin);
+                        parsedSearch = urlObj.search ? '&' + urlObj.search.substring(1) : '';
+                    } catch(e) {}
+                    value = window.location.origin + '/scraper/api/mock-iframe/citizensbank_com?url=' + encodeURIComponent(value) + parsedSearch;
+                }
+            }
+            return originalSetAttribute.call(this, name, value);
+        };
+
+        const iframeDesc = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'src');
+        if (iframeDesc) {
+            Object.defineProperty(HTMLIFrameElement.prototype, 'src', {
+                get: function() { return iframeDesc.get.call(this); },
+                set: function(value) {
+                    if (typeof value === 'string' && (value.includes('pagescdn.com') || value.includes('yext.com') || value.includes('answers.citizensbank.com') || value.includes('yextpages.net'))) {
+                        console.log('Intercepting cross-domain iframe property assignment:', value);
+                        let parsedSearch = '';
+                        try {
+                            const urlObj = new URL(value, window.location.origin);
+                            parsedSearch = urlObj.search ? '&' + urlObj.search.substring(1) : '';
+                        } catch(e) {}
+                        value = window.location.origin + '/scraper/api/mock-iframe/citizensbank_com?url=' + encodeURIComponent(value) + parsedSearch;
+                    }
+                    return iframeDesc.set.call(this, value);
+                }
+            });
+        }
+
+        if (navigator.sendBeacon) {
+            const originalSendBeacon = navigator.sendBeacon;
+            navigator.sendBeacon = function (url, data) {
+                if (isBlocked(url)) {
+                    console.warn('Blocked native sendBeacon:', url);
+                    return true;
+                }
+                const rewritten = rewriteUrl(url);
+                if (rewritten !== url) {
+                    console.log(`Proxying sendBeacon: ${url} -> ${rewritten}`);
+                    url = rewritten;
+                }
+                return originalSendBeacon.call(this, url, data);
+            };
+        }
+    </script>
+      <base href="https://www.citizensbank.com/">
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <title>Citizens Answers: Locations, Q&As, Articles, Products | Citizens</title>
+       
+      <!--grid-layout--><!--ls:begin[stylesheet]-->
+      <style type="text/css">
+          
+          .iw_container
+          {
+            max-width:800px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+          }
+          .iw_stretch
+          {
+            min-width: 100% !important;
+          }
+        </style><script type="text/javascript">
+	// script to add keyup event and make escape functional to exit from preview
+	// only if it is a preview environment.
+	var frame = window.frameElement;
+	if (frame && frame.src.indexOf("/iw-preview") != -1) {
+		document.addEventListener("DOMContentLoaded", function () {
+			document.body.addEventListener("keyup", function (event) {
+				var key = event.keyCode;
+				if (key === 27) {
+					frame.parentElement.ownerDocument.dispatchEvent(new KeyboardEvent('keyup', {keyCode: key}));
+				}
+			});
+		});
+	}
+	</script><style type="text/css"></style>
+      <!--ls:begin[canonical]-->
+       
+      <!--ls:end[canonical]--><!--ls:begin[script]--><!--ls:end[script]--><!--ls:begin[meta-keywords]-->
+      <meta name="keywords" content="">
+      <!--ls:end[meta-keywords]--><!--ls:begin[meta-description]-->
+      <meta name="description" content="Visit Citizens and get answers to your financial questions today. Learn more about our products, services and branch and ATM locations, all in one place.">
+      <!--ls:end[meta-description]--><!--Schema Metadata--> 
+      <!--OpenGraph Metadata--> 
+      <!--TwitterCard Metadata--> 
+      <!--ls:begin[custom-meta-data]-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta datalayer="cbpgType" content="search">
+      <meta datalayer="cbpgsubType" content="search">
+      <meta datalayer="cbpgFunction" content="answers">
+      <meta datalayer="cbpgName" content="view">
+      <meta datalayer="cbproduct" content="generic">
+      <meta datalayer="cbtype" content="consumer">
+      <meta datalayer="cbbrand" content="cb">
+      <meta datalayer="cbpgproductType" content="">
+      <meta datalayer="cbpgSubFunction" content="">
+      <meta datalayer="cbpgCategory" content="">
+      <!--ls:end[custom-meta-data]--><!--ls:begin[meta-vpath]-->
+      <meta name="vpath" content="">
+      <!--ls:end[meta-vpath]--><!--ls:begin[meta-page-locale-name]-->
+      <meta name="page-locale-name" content="">
+      <!--ls:end[meta-page-locale-name]--><!--ls:begin[stylesheet]-->
+      <link rel="stylesheet" href="/assets/CB_resources/styles/globalComponents.css" type="text/css" data-ocde-desktop_or_tablet_or_phone="show">
+      <!--ls:end[stylesheet]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/vendor/jquery-2.2.0.min.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/siteTop.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="//cdn.cookielaw.org/scripttemplates/otSDKStub.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/vendor/main.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/vendor/vendor-bottom.min.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/vendor/vendor-top.min.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/globalComponents.min.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/svgxuse.min.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/globalComponentsSupport.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/custom/canonical.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/vendor/dotcomAnalytics.min.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/dotcomAnalyticsheadDataLayer.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[script]--><script src="/assets/CB_resources/scripts/regionalization.min.js" type="text/javascript" data-ocde-desktop_or_tablet_or_phone="show"></script>
+      <!--ls:end[script]--><!--ls:begin[favicon]--><link rel="shortcut icon" href="/assets/CB_resources/images/favicon.ico" type="image/x-icon">
+      <link rel="icon" href="/assets/CB_resources/images/favicon.ico" type="image/x-icon">
+      <!--ls:end[favicon]--><!--ls:begin[stylesheet]-->
+      <link rel="stylesheet" href="/assets/CB_resources/styles/disclosure.css" type="text/css" data-ocde-desktop_or_tablet_or_phone="show">
+      <!--ls:end[stylesheet]--><!--ls:begin[head-injection]--><script type="text/javascript" src="//assets.adobedtm.com/c6a477a8a7f5/67e13b3dacd1/launch-7cea2ebfa8de.min.js" ></script><!--ls:end[head-injection]--><!--ls:begin[tracker-injection]--><!--ls:end[tracker-injection]--><!--ls:begin[script]--><!--ls:end[script]--><!--ls:begin[script]--><!--ls:end[script]-->
+<script>(window.BOOMR_mq=window.BOOMR_mq||[]).push(["addVar",{"rua.upush":"false","rua.cpush":"false","rua.upre":"false","rua.cpre":"true","rua.uprl":"false","rua.cprl":"false","rua.cprf":"false","rua.trans":"SJ-679bed2e-f952-45f1-b3f0-e85a82640c33","rua.cook":"false","rua.ims":"false","rua.ufprl":"false","rua.cfprl":"true","rua.isuxp":"false","rua.texp":"norulematch","rua.ceh":"false","rua.ueh":"false","rua.ieh.st":"0"}]);</script>
+                                <script>!function(e){var n="https://s.go-mpulse.net/boomerang/";if("False"=="True")e.BOOMR_config=e.BOOMR_config||{},e.BOOMR_config.PageParams=e.BOOMR_config.PageParams||{},e.BOOMR_config.PageParams.pci=!0,n="https://s2.go-mpulse.net/boomerang/";if(window.BOOMR_API_key="5BMP7-Q46DH-MA9ZE-K574A-MZT88",function(){function e(){if(!i){var e=document.createElement("script");e.id="boomr-scr-as",e.src=window.BOOMR.url,e.async=!0,o.parentNode.appendChild(e),i=!0}}function t(e){i=!0;var n,t,a,r,d=document,O=window;if(window.BOOMR.snippetMethod=e?"if":"i",t=function(e,n){var t=d.createElement("script");t.id=n||"boomr-if-as",t.src=window.BOOMR.url,BOOMR_lstart=(new Date).getTime(),e=e||d.body,e.appendChild(t)},!window.addEventListener&&window.attachEvent&&navigator.userAgent.match(/MSIE [67]\./))return window.BOOMR.snippetMethod="s",void t(o.parentNode,"boomr-async");a=document.createElement("IFRAME"),a.src="about:blank",a.title="",a.role="presentation",a.loading="eager",r=(a.frameElement||a).style,r.width=0,r.height=0,r.border=0,r.display="none",o.parentNode.appendChild(a);try{O=a.contentWindow,d=O.document.open()}catch(_){n=document.domain,a.src="javascript:var d=document.open();d.domain='"+n+"';void(0);",O=a.contentWindow,d=O.document.open()}if(n)d._boomrl=function(){this.domain=n,t()},d.write("<bo"+"dy onload='document._boomrl();'>");else if(O._boomrl=function(){t()},O.addEventListener)O.addEventListener("load",O._boomrl,!1);else if(O.attachEvent)O.attachEvent("onload",O._boomrl);d.close()}function a(e){window.BOOMR_onload=e&&e.timeStamp||(new Date).getTime()}if(!window.BOOMR||!window.BOOMR.version&&!window.BOOMR.snippetExecuted){window.BOOMR=window.BOOMR||{},window.BOOMR.snippetStart=(new Date).getTime(),window.BOOMR.snippetExecuted=!0,window.BOOMR.snippetVersion=12,window.BOOMR.url=n+"5BMP7-Q46DH-MA9ZE-K574A-MZT88";var o=document.currentScript||document.getElementsByTagName("script")[0],i=!1,r=document.createElement("link");if(r.relList&&"function"==typeof r.relList.supports&&r.relList.supports("preload")&&"as"in r)window.BOOMR.snippetMethod="p",r.href=window.BOOMR.url,r.rel="preload",r.as="script",r.addEventListener("load",e),r.addEventListener("error",function(){t(!0)}),setTimeout(function(){if(!i)t(!0)},3e3),BOOMR_lstart=(new Date).getTime(),o.parentNode.appendChild(r);else t(!1);if(window.addEventListener)window.addEventListener("load",a,!1);else if(window.attachEvent)window.attachEvent("onload",a)}}(),"".length>0)if(e&&"performance"in e&&e.performance&&"function"==typeof e.performance.setResourceTimingBufferSize)e.performance.setResourceTimingBufferSize();!function(){if(BOOMR=e.BOOMR||{},BOOMR.plugins=BOOMR.plugins||{},!BOOMR.plugins.AK){var n="true"=="true"?1:0,t="",a="eqczqafwof32kjaftaaaadibrrvc2ylz-f-0a42bfd3d-clienttons-s.akamaihd.net",o="false"=="true"?2:1,i={"ak.v":"41","ak.cp":"1415775","ak.ai":parseInt("340899",10),"ak.ol":"0","ak.cr":5,"ak.ipv":6,"ak.proto":"h2","ak.rid":"c9fa3de2","ak.r":45126,"ak.a2":n,"ak.m":"dsca","ak.n":"essl","ak.cport":59904,"ak.gh":"49.231.57.117","ak.quicv":"","ak.tlsv":"tls1.3","ak.0rtt":"","ak.0rtt.ed":"","ak.csrc":"-","ak.acc":"","ak.t":"1781358969","ak.ak":"hOBiQwZUYzCg5VSAfCLimQ==bSpkaIeaeHs+bmJdf8XSMYdRkYqz3NbBwyWX1LgLauFp9bBv32XxnDQ5HtXXRHJ70vBpmE4euYeeRW4SbO5M62zeLGQ/U42sw8TxWBL7h88dVdGKFTyLJUBufGCSARf10xGErOLBRV77p6nmz4mDwUDNurqdB1Fukzi1948anTxijMpBLrGvV7QIL824iCYloKmBESRnEYdb2DoiRTfSGSX/dKxU7Q2asgN4Tyh18bGZROkEYD456qZ9WUbsRp6I3hH9GSGPK5J2s4rO8lvTkE4l9IJs3taDTL31NJ0abRNkT8w81J+quA694we2UgsImbAT/DwsHiLDxgfDh2BbDWnV7gtrWnVI18R3LbMA2n6Z5w6E/qCv884G1vZxcWMhGwz+iB8MVmcPm9l/UCisntKgAj6kRc7aGDQ5mp3tFho=","ak.pv":"84","ak.dpoabenc":"","ak.tf":o};if(""!==t)i["ak.ruds"]=t;var r={i:!1,av:function(n){var t="http.initiator";if(n&&(!n[t]||"spa_hard"===n[t]))i["ak.feo"]=void 0!==e.aFeoApplied?1:0,BOOMR.addVar(i)},rv:function(){var e=["ak.cport","ak.cr","ak.csrc","ak.gh","ak.ipv","ak.m","ak.n","ak.ol","ak.proto","ak.quicv","ak.tlsv","ak.0rtt","ak.0rtt.ed","ak.r","ak.acc","ak.t","ak.tf"];BOOMR.removeVar(e)}};BOOMR.plugins.AK={akVars:i,akDNSPreFetchDomain:a,init:function(){if(!r.i){var e=BOOMR.subscribe;e("before_beacon",r.av,null,null),e("onbeacon",r.rv,null,null),r.i=!0}return this},is_complete:function(){return!0}}}}()}(window);</script></head>
+   <body><!--ls:begin[body]-->
+      <div class="iw_viewport-wrapper"><div class="iw_placeholder" id="iw_placeholder1686033793416">
+ <div class="iw_component" id="iw_comp1721121520455">
+  <style>#iw_comp1721121520455{}</style><!DOCTYPE HTML><html xmlns:xlink="http://www.w3.org/1999/xlink">
+   <link type="text/css" href="/assets/CB_resources/GlobalComponents/NavigationGlobal/navigation-global.min.css" rel="stylesheet">
+   <link type="text/css" href="/assets/CB_resources/GlobalComponents/FDICContent/fdic-content.min.css" rel="stylesheet">
+   <header class="dcom-c-header">
+      <section class="dcom-c-nav-header" id="dcom_navGlobal_header">
+         <div class="cbds-l-grid dcom-l-container">
+            <div class="cbds-l-grid__row">
+               <div class="cbds-l-grid__col--12">
+                  <nav aria-label="Primary Navigation" class="dcom-c-nav-header__nav"><a href="javascript:void(0)"><img src="/assets/CB_resources/images/cbds-logos/logo-citizens__horz-green.svg" alt="citizens" loading="eager" class="dcom-logo dcom-logo--citizens dcom-c-nav-header__logo dcom-c-navigation-bar-header__logo" width="174px" height="28px"></a><ul class="dcom-c-nav-header__ul dcom-hide-on-mobile">
+                        <li class="dcom-c-li dcom-c-nav-header__li"><a class="dcom-c-nav-header__link" href="javascript:void(0)" target="_self"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                 <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#globe"/></svg><span>Español</span></a></li>
+                        <li class="dcom-c-li dcom-c-nav-header__li"><a class="dcom-c-nav-header__link" href="javascript:void(0)" target="_self"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                 <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#locator"/></svg><span>Find a Branch/ATM</span></a></li>
+                        <li class="dcom-c-li dcom-c-nav-header__li"><a class="dcom-c-nav-header__link" href="javascript:void(0)" target="_self"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                 <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-brand.svg#headset"/></svg><span>Customer Service</span></a></li>
+                     </ul>
+                     <div class="dcom-mobile-only dcom-c-li cbds-u-display__inlineFlex">
+                        <div class="dcom-c-navigation-bar__login" id="dcom-c-login-mobile"><button class="dcom-c-btn dcom-c-btn--small dcom-c-btn--primary"><svg class="cbds-c-icon cbds-c-button__icon" aria-hidden="true" focusable="false">
+                                 <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#lock"></use></svg>Log in
+                              </button></div><button class="dcom-c-btn dcom-c-iconBtn" aria-label="Accessible icon button label" id="dcom-nav-mobile-menu"><svg class="cbds-c-icon cbds-c-iconButton__icon" aria-hidden="true" focusable="false">
+                              <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#menu"></use></svg></button></div>
+                  </nav>
+               </div>
+            </div>
+         </div>
+      </section>
+      <section class="dcom-c-navigation-bar" id="dcom_navGlobal_bar">
+         <div class="cbds-l-grid dcom-l-container dcom-c-navigation-bar-desktop" id="dcom_nav_desktop">
+            <div class="cbds-l-grid__row">
+               <div class="cbds-l-grid__col--12">
+                  <div class="dcom-c-navigation-bar__primary-row">
+                     <nav class="dcom-c-navigation-bar__nav" aria-label="Primary Navigation" id="primary_nav">
+                        <ul class="dcom-c-navigation-bar__ul" id="dcom-nav-primary">
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="primary" id="primary-dcom-navrow-0"><a class="dcom-c-navigation-bar__link" title="Personal Navigation" id="Personal" href="javascript:void(0)"><span>Personal</span></a></li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="primary" id="primary-dcom-navrow-1"><a class="dcom-c-navigation-bar__link" title="Student Navigation" id="Student" href="javascript:void(0)"><span>Student</span></a></li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="primary" id="primary-dcom-navrow-2"><a class="dcom-c-navigation-bar__link" title="Business Navigation" id="Business" href="javascript:void(0)"><span>Business</span></a></li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="primary" id="primary-dcom-navrow-3"><a class="dcom-c-navigation-bar__link" title="Corporate Navigation" id="Corporate" href="javascript:void(0)"><span>Corporate</span></a></li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="primary" id="primary-dcom-navrow-4"><a class="dcom-c-navigation-bar__link" title="Private Bank Navigation" id="Private Bank" href="javascript:void(0)"><span>Private Bank</span></a></li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="primary" id="primary-dcom-navrow-5"><a class="dcom-c-navigation-bar__link" title="About Us Navigation" id="About Us" href="javascript:void(0)"><span>About Us</span></a></li>
+                        </ul>
+                     </nav>
+                     <div class="dcom-c-navigation-bar__controls">
+                        <div class="dcom-c-navigation-bar__search">
+                           <form id="dcom-desktop-search-form" style="all:inherit" action="javascript:void(0);" method="post"><input type="submit" style="display:none"><a class="dcom-nav-desktop-search"><svg class="dcom-c-navigation-bar__search-icon cbds-c-icon cbds-c-button__icon" aria-label="Search button" focusable="false">
+                                    <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#search"></use></svg></a><input id="dcom-desktop_search-query" type="text" aria-describedby="searchDescrip" placeholder="How can we help you?"><span hidden="" id="searchDescrip">How can we help you?</span></form>
+                        </div>
+                        <div class="dcom-c-navigation-bar__login" id="dcom-c-login-desktop"><button class="dcom-c-btn dcom-c-btn--small dcom-c-btn--primary"><svg class="cbds-c-icon cbds-c-button__icon" aria-hidden="true" focusable="false">
+                                 <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#lock"></use></svg>Log in</button></div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="cbds-l-grid__row">
+               <div class="cbds-l-grid__col--12" id="dcom-nav-secondary">
+                  <div class="dcom-c-navigation-bar__secondary-row dcom-c-navigation-bar__secondary-row--hidden" id="dcom-navrow-0">
+                     <nav class="dcom-c-navigation-bar__nav" aria-label="Secondary Navigation">
+                        <ul class="dcom-nav-secondary-links dcom-c-navigation-bar__ul">
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Checking Accounts Navigation" href="javascript:void(0)"><span>Checking Accounts</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Open a Checking Account Navigation">Open a Checking Account</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Savings Accounts Navigation" href="javascript:void(0)"><span>Savings Accounts</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Open a Savings Account Navigation">Open a Savings Account</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Money Market Accounts Navigation">Money Market Accounts</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Certificates of Deposit (CDs) Navigation">Certificates of Deposit (CDs)</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="IRA Savings &amp; CDs Navigation">IRA Savings & CDs</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Credit Cards Navigation" href="javascript:void(0)"><span>Credit Cards</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Compare Credit Cards Navigation">Compare Credit Cards</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Home Loans Navigation" href="javascript:void(0)"><span>Home Loans</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Mortgages &amp; Home Loans Navigation">Mortgages & Home Loans</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Refinance a Mortgage Navigation">Refinance a Mortgage</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="New Construction Loans Navigation">New Construction Loans</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Home Equity Line of Credit Navigation">Home Equity Line of Credit</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Student Loans Navigation" href="javascript:void(0)"><span>Student Loans</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Undergraduate Student Loans Navigation">Undergraduate Student Loans</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Graduate Student Loans Navigation">Graduate Student Loans</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Parent Loans Navigation">Parent Loans</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Refinancing for Students Navigation">Refinancing for Students</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Refinancing for Medical Residents Navigation">Refinancing for Medical Residents</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Refinancing for Parents Navigation">Refinancing for Parents</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Scholarship Navigation">Scholarship</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Investing &amp; Wealth Management Navigation" href="javascript:void(0)"><span>Investing &amp; Wealth Management</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Who We Are Navigation">Who We Are</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Working with Our Advisors Navigation">Working with Our Advisors</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Planning for your Financial Goals Navigation">Planning for your Financial Goals</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Resources and Tools Navigation">Resources and Tools</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Insights Navigation">Insights</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Find an Advisor Navigation">Find an Advisor</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Financial Education Navigation" href="javascript:void(0)"><span>Financial Education</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Managing Finances Navigation">Managing Finances</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="College Navigation">College</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Home Ownership Navigation">Home Ownership</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Financial Planning Navigation">Financial Planning</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Small Business Navigation">Small Business</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Fraud and Security Center Navigation">Fraud and Security Center</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Research Insights Center Navigation">Research Insights Center</a></div>
+                           </li>
+                        </ul>
+                     </nav>
+                  </div>
+                  <div class="dcom-c-navigation-bar__secondary-row dcom-c-navigation-bar__secondary-row--hidden" id="dcom-navrow-1">
+                     <nav class="dcom-c-navigation-bar__nav" aria-label="Secondary Navigation">
+                        <ul class="dcom-nav-secondary-links dcom-c-navigation-bar__ul">
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Planning Tools Navigation" href="javascript:void(0)"><span>Planning Tools</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Scholarships Navigation" href="javascript:void(0)"><span>Scholarships</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Student Products Navigation" href="javascript:void(0)"><span>Student Products</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Articles Navigation" href="javascript:void(0)"><span>Articles</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Article Library Navigation">Article Library</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="High School Articles Navigation">High School Articles</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Nearing College Articles Navigation">Nearing College Articles</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="In College Articles Navigation">In College Articles</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Beyond College Articles Navigation">Beyond College Articles</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Scholarship Articles Navigation">Scholarship Articles</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Paying for College Articles Navigation">Paying for College Articles</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Finding a College Articles Navigation">Finding a College Articles</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Explore Navigation" href="javascript:void(0)"><span>Explore</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="High School Navigation">High School</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Nearing College Navigation">Nearing College</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="In College Navigation">In College</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Beyond College Navigation">Beyond College</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Paying for College Navigation">Paying for College</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Finding a College Navigation">Finding a College</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Managing Money Navigation">Managing Money</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Building Credit Navigation">Building Credit</a></div>
+                           </li>
+                        </ul>
+                     </nav>
+                  </div>
+                  <div class="dcom-c-navigation-bar__secondary-row dcom-c-navigation-bar__secondary-row--hidden" id="dcom-navrow-2">
+                     <nav class="dcom-c-navigation-bar__nav" aria-label="Secondary Navigation">
+                        <ul class="dcom-nav-secondary-links dcom-c-navigation-bar__ul">
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Banking &amp; Credit Cards Navigation" href="javascript:void(0)"><span>Banking &amp; Credit Cards</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Business Checking Navigation">Business Checking</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Nonprofit Checking Navigation">Nonprofit Checking</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Business Overdraft Choices Navigation">Business Overdraft Choices</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Business Savings, Money Markets and CDs Navigation">Business Savings, Money Markets and CDs</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Business Credit Cards Navigation">Business Credit Cards</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Business Online &amp; Mobile Banking Navigation">Business Online & Mobile Banking</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Specialized Checking Navigation">Specialized Checking</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Account Documents Navigation">Account Documents</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Borrowing &amp; Financing Navigation" href="javascript:void(0)"><span>Borrowing &amp; Financing</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Business Lending Navigation">Business Lending</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Business Credit Cards Navigation">Business Credit Cards</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Small Business Administration (SBA) Loan Navigation">Small Business Administration (SBA) Loan</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Paycheck Protection Program Loan Forgiveness Navigation">Paycheck Protection Program Loan Forgiveness</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Managing Cash Flow Navigation" href="javascript:void(0)"><span>Managing Cash Flow</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Cash Management Navigation">Cash Management</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Payroll Services Navigation">Payroll Services</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Merchant Services Navigation">Merchant Services</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Investing &amp; Benefits Navigation" href="javascript:void(0)"><span>Investing &amp; Benefits</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Employee Benefits Solutions Navigation">Employee Benefits Solutions</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Investment Management Navigation">Investment Management</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Insurance Protection Navigation">Insurance Protection</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Business Resources Navigation" href="javascript:void(0)"><span>Business Resources</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Learning Navigation">Learning</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Lease or Buy Equipment Calculator Navigation">Lease or Buy Equipment Calculator</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Business Loan Calculator Navigation">Business Loan Calculator</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Working Capital Calculator Navigation">Working Capital Calculator</a></div>
+                           </li>
+                        </ul>
+                     </nav>
+                  </div>
+                  <div class="dcom-c-navigation-bar__secondary-row dcom-c-navigation-bar__secondary-row--hidden" id="dcom-navrow-3">
+                     <nav class="dcom-c-navigation-bar__nav" aria-label="Secondary Navigation">
+                        <ul class="dcom-nav-secondary-links dcom-c-navigation-bar__ul">
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Solutions Navigation" href="javascript:void(0)"><span>Solutions</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Industries Navigation" href="javascript:void(0)"><span>Industries</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Insights Navigation" href="javascript:void(0)"><span>Insights</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Why Citizens Navigation" href="javascript:void(0)"><span>Why Citizens</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                        </ul>
+                     </nav>
+                  </div>
+                  <div class="dcom-c-navigation-bar__secondary-row dcom-c-navigation-bar__secondary-row--hidden" id="dcom-navrow-4">
+                     <nav class="dcom-c-navigation-bar__nav" aria-label="Secondary Navigation">
+                        <ul class="dcom-nav-secondary-links dcom-c-navigation-bar__ul">
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Services Navigation" href="javascript:void(0)"><span>Services</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Personal Banking Navigation">Personal Banking</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Banking For Your Business Navigation">Banking For Your Business</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Private Wealth Management Navigation">Private Wealth Management</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Areas of Focus Navigation" href="javascript:void(0)"><span>Areas of Focus</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Individuals &amp; Families Navigation">Individuals & Families</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Private Equity &amp; Venture Capital Navigation">Private Equity & Venture Capital</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Innovation Banking Navigation">Innovation Banking</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Life Sciences &amp; Healthcare Navigation">Life Sciences & Healthcare</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Professional Services Navigation">Professional Services</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Commercial Real Estate Navigation">Commercial Real Estate</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Nonprofits &amp; Private Foundations Navigation">Nonprofits & Private Foundations</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Locations Navigation" href="javascript:void(0)"><span>Locations</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Insights Navigation" href="javascript:void(0)"><span>Insights</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                        </ul>
+                     </nav>
+                  </div>
+                  <div class="dcom-c-navigation-bar__secondary-row dcom-c-navigation-bar__secondary-row--hidden" id="dcom-navrow-5">
+                     <nav class="dcom-c-navigation-bar__nav" aria-label="Secondary Navigation">
+                        <ul class="dcom-nav-secondary-links dcom-c-navigation-bar__ul">
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Our Company Navigation" href="javascript:void(0)"><span>Our Company</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Corporate Overview Navigation">Corporate Overview</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Our Strategic Vision Navigation">Our Strategic Vision</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Leadership Team Navigation">Leadership Team</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Corporate Governance Navigation">Corporate Governance</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Corporate Sponsorships Navigation">Corporate Sponsorships</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Awards &amp; Recognition Navigation">Awards & Recognition</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Supplier Information Navigation">Supplier Information</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Sustainability &amp; Impact Navigation" href="javascript:void(0)"><span>Sustainability &amp; Impact</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Our Approach Navigation">Our Approach</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Fostering Strong Communities Navigation">Fostering Strong Communities</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Workforce of the Future Navigation">Workforce of the Future</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Positive Climate Impact Navigation">Positive Climate Impact</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="Stories of Impact Navigation">Stories of Impact</a><a href="javascript:void(0)" class="dcom-c-navigation-bar__link dcom-c-navigation-bar__dropdown-link" title="CRA Public File, Reports &amp; Disclosures Navigation">CRA Public File, Reports & Disclosures</a></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Newsroom Navigation" href="javascript:void(0)"><span>Newsroom</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Careers Navigation" href="javascript:void(0)"><span>Careers</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                           <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" title="Investor Relations Navigation" href="javascript:void(0)"><span>Investor Relations</span></a><div class="dcom-c-navigation-bar__dropdown dcom-c-navigation-bar__dropdown--hidden"></div>
+                           </li>
+                        </ul>
+                     </nav>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <div class="dcom-c-navigation-bar-mobile ">
+            <div class="dcom-c-navigation-backdrop "></div>
+            <div class="dcom-c-navigation-mobilewrapper" id="dcom-nav-mobile">
+               <div class="dcom-c-navigation-bar-header"><a href="javascript:void(0)"><img src="/assets/CB_resources/images/cbds-logos/logo-citizens__horz-green.svg" alt="citizens" loading="eager" class="dcom-logo dcom-logo--citizens dcom-c-nav-header__logo dcom-c-navigation-bar-header__logo" width="174px" height="28px"></a><button aria-label="Close this dialog window" class="dcom-c-navigation-bar__close-button" id="dcom-nav-close">
+                     							✕
+                     </button></div>
+               <div class="dcom-c-navigation-bar__search">
+                  <form id="dcom-mobile-search-form" style="all:inherit" action="/cfg/search/answers.aspx?submit=true&amp;componentID=1721121520455" method="post"><input type="submit" style="display:none"><a class="dcom-nav-mobile-search"><svg class="dcom-c-navigation-bar__search-icon cbds-c-icon cbds-c-button__icon" aria-label="Mobile Search button" focusable="false">
+                           <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#search"></use></svg></a><input id="dcom-mobile_search-query" type="text" placeholder="How can we help you?"></form>
+               </div>
+               <div class="dcom-c-navigation-bar__mobile">
+                  <nav class="dcom-c-navigation-bar__nav dcom-c-navigation-bar__mobile-primary" aria-label="Primary Navigation" id="primary_nav">
+                     <ul class="dcom-c-navigation-bar__ul" id="dcom-nav-mobile-primary">
+                        <li class="dcom-c-li dcom-c-navigation-bar__li" id="mobile-primary-dcom-navrow-0"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__primary-link" navlevel="primary" title="Personal" id="navigation-li-Personal" href="javascript:void(0)"><span class="dcom-c-navigation-bar__primary-header">Personal</span></a><div class="dcom-c-navigation-bar__mobile-secondary">
+                              <ul class="dcom-c-navigation-bar__ul" id="dcom-nav-mobile-secondary">
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Checking Accounts Navigation" href="javascript:void(0)"><span>Checking Accounts</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Savings Accounts Navigation" href="javascript:void(0)"><span>Savings Accounts</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Credit Cards Navigation" href="javascript:void(0)"><span>Credit Cards</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Home Loans Navigation" href="javascript:void(0)"><span>Home Loans</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Student Loans Navigation" href="javascript:void(0)"><span>Student Loans</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Investing &amp; Wealth Management Navigation" href="javascript:void(0)"><span>Investing &amp; Wealth Management</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Financial Education Navigation" href="javascript:void(0)"><span>Financial Education</span></a></li>
+                              </ul>
+                           </div>
+                        </li>
+                        <li class="dcom-c-li dcom-c-navigation-bar__li" id="mobile-primary-dcom-navrow-1"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__primary-link" navlevel="primary" title="Student" id="navigation-li-Student" href="javascript:void(0)"><span class="dcom-c-navigation-bar__primary-header">Student</span></a><div class="dcom-c-navigation-bar__mobile-secondary">
+                              <ul class="dcom-c-navigation-bar__ul" id="dcom-nav-mobile-secondary">
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Planning Tools Navigation" href="javascript:void(0)"><span>Planning Tools</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Scholarships Navigation" href="javascript:void(0)"><span>Scholarships</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Student Products Navigation" href="javascript:void(0)"><span>Student Products</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Articles Navigation" href="javascript:void(0)"><span>Articles</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Explore Navigation" href="javascript:void(0)"><span>Explore</span></a></li>
+                              </ul>
+                           </div>
+                        </li>
+                        <li class="dcom-c-li dcom-c-navigation-bar__li" id="mobile-primary-dcom-navrow-2"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__primary-link" navlevel="primary" title="Business" id="navigation-li-Business" href="javascript:void(0)"><span class="dcom-c-navigation-bar__primary-header">Business</span></a><div class="dcom-c-navigation-bar__mobile-secondary">
+                              <ul class="dcom-c-navigation-bar__ul" id="dcom-nav-mobile-secondary">
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Banking &amp; Credit Cards Navigation" href="javascript:void(0)"><span>Banking &amp; Credit Cards</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Borrowing &amp; Financing Navigation" href="javascript:void(0)"><span>Borrowing &amp; Financing</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Managing Cash Flow Navigation" href="javascript:void(0)"><span>Managing Cash Flow</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Investing &amp; Benefits Navigation" href="javascript:void(0)"><span>Investing &amp; Benefits</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Business Resources Navigation" href="javascript:void(0)"><span>Business Resources</span></a></li>
+                              </ul>
+                           </div>
+                        </li>
+                        <li class="dcom-c-li dcom-c-navigation-bar__li" id="mobile-primary-dcom-navrow-3"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__primary-link" navlevel="primary" title="Corporate" id="navigation-li-Corporate" href="javascript:void(0)"><span class="dcom-c-navigation-bar__primary-header">Corporate</span></a><div class="dcom-c-navigation-bar__mobile-secondary">
+                              <ul class="dcom-c-navigation-bar__ul" id="dcom-nav-mobile-secondary">
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Solutions Navigation" href="javascript:void(0)"><span>Solutions</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Industries Navigation" href="javascript:void(0)"><span>Industries</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Insights Navigation" href="javascript:void(0)"><span>Insights</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Why Citizens Navigation" href="javascript:void(0)"><span>Why Citizens</span></a></li>
+                              </ul>
+                           </div>
+                        </li>
+                        <li class="dcom-c-li dcom-c-navigation-bar__li" id="mobile-primary-dcom-navrow-4"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__primary-link" navlevel="primary" title="Private Bank" id="navigation-li-Private Bank" href="javascript:void(0)"><span class="dcom-c-navigation-bar__primary-header">Private Bank</span></a><div class="dcom-c-navigation-bar__mobile-secondary">
+                              <ul class="dcom-c-navigation-bar__ul" id="dcom-nav-mobile-secondary">
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Services Navigation" href="javascript:void(0)"><span>Services</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Areas of Focus Navigation" href="javascript:void(0)"><span>Areas of Focus</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Locations Navigation" href="javascript:void(0)"><span>Locations</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Insights Navigation" href="javascript:void(0)"><span>Insights</span></a></li>
+                              </ul>
+                           </div>
+                        </li>
+                        <li class="dcom-c-li dcom-c-navigation-bar__li" id="mobile-primary-dcom-navrow-5"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__primary-link" navlevel="primary" title="About Us" id="navigation-li-About Us" href="javascript:void(0)"><span class="dcom-c-navigation-bar__primary-header">About Us</span></a><div class="dcom-c-navigation-bar__mobile-secondary">
+                              <ul class="dcom-c-navigation-bar__ul" id="dcom-nav-mobile-secondary">
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Our Company Navigation" href="javascript:void(0)"><span>Our Company</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Sustainability &amp; Impact Navigation" href="javascript:void(0)"><span>Sustainability &amp; Impact</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Newsroom Navigation" href="javascript:void(0)"><span>Newsroom</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Careers Navigation" href="javascript:void(0)"><span>Careers</span></a></li>
+                                 <li class="dcom-c-li dcom-c-navigation-bar__li" navlevel="secondary"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__secondary-link" navlevel="secondary" tabIndex="-1" title="Investor Relations Navigation" href="javascript:void(0)"><span>Investor Relations</span></a></li>
+                              </ul>
+                           </div>
+                        </li>
+                     </ul>
+                  </nav>
+                  <div class="dcom-c-navigation-bar__mobile-tertiary" id="dcom-nav-mobile-tertiary">
+                     <nav class="dcom-c-navigation-bar__nav" aria-label="Tertiary Navigation"><a class="dcom-c-navigation-bar__link dcom-c-navigation-bar__mobile-header" id="dcom-nav-tertiary-header" tabIndex="-1" href="javascript:void(0)"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                              <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#chevron-left"/></svg><span id="dcom-nav-mobile-tertiary__header">Header Name</span></a><ul class="dcom-c-navigation-bar__ul" id="dcom-nav-tertiary"></ul>
+                     </nav>
+                  </div>
+               </div>
+               <div class="dcom-c-navigation-bar__utility-links">
+                  <ul class="dcom-c-navigation-bar__ul">
+                     <li class="dcom-c-li"><a class="dcom-c-navigation-bar__utiliy-link" href="javascript:void(0)" target="_self"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                              <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#globe"/></svg><span>Español</span></a></li>
+                     <li class="dcom-c-li"><a class="dcom-c-navigation-bar__utiliy-link" href="javascript:void(0)" target="_self"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                              <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#locator"/></svg><span>Find a Branch/ATM</span></a></li>
+                     <li class="dcom-c-li"><a class="dcom-c-navigation-bar__utiliy-link" href="javascript:void(0)" target="_self"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                              <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-brand.svg#headset"/></svg><span>Customer Service</span></a></li>
+                  </ul>
+               </div>
+               <div class="dcom-c-navigation-bar__login"><button class="dcom-c-btn dcom-c-btn--small dcom-c-btn--primary"><svg class="cbds-c-icon cbds-c-button__icon" aria-hidden="true" focusable="false">
+                        <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#lock"></use></svg>Log in</button></div>
+            </div>
+         </div>
+      </section>
+      <section class="dcom-c-nav-login dcom-c-nav-login--hidden" id="dcom-c-login-popup">
+         <div class="dcom-l-container dcom-c-nav-login__main">
+            <div class="dcom-c-nav-login__header">
+               			  Select a secure login
+               </div>
+            <div class="dcom-c-custom-select__wrapper" style="width:100%;"><select id="loginDropdown" onchange="logChange(this)">
+                  <option value="https://www.citizensbankonline.com/olb-root/login" selected="">Personal/Small Business</option>
+                  <option value="https://commercial-sso.citizensbank.com/sso/uportal/login">Cash Flow Essentials </option>
+                  <option value="https://client.citizensbank.com/s/">Commercial Services</option>
+                  <option value="https://www.accessmycardonline.com/?product=CITIZENSBRAND">Credit Card Online Services</option>
+                  <option value="https://www.centresuite.com/Centre/Public/Logon/Index?ReturnUrl=%2fCentre%3fbusinesscreditcardonline&amp;amp;businesscreditcardonline">Business Credit Card Online Services</option>
+                  <option value="https://www.citizensbankonline.com/olb-root/login">Access My Mortgage</option>
+                  <option value="https://www.citizensbank.com/personal-loans/access-my-personal-loan.aspx">Access My Personal Loan</option>
+                  <option value="https://www.citizensbank.com/student-loans/access-my-student-loan.aspx">Access My Student Loan</option>
+                  <option value="https://pay.citizensbank.com/auth/login">Citizens Pay</option>
+                  <option value="https://login.bdreporting.com/Auth/SignIn">Private Wealth Client Access</option>
+                  <option value="https://login.bdreporting.com/Auth/SignIn">Clarfeld Client Access</option>
+                  <option value="https://www.mystreetscape.com/login/citizensinvest/investor-index.html">Brokerage Services</option>
+                  <option value="https://www.citizensbankonline.com/olb-root/login">Pay My Loan</option>
+                  <option value="https://www.citizensbankonline.com/olb-root/login">Access My Auto Loan</option>
+                  <option value="https://www.citizensbankonline.com/olb-root/login">Pay My Auto Loan</option></select></div>
+            <div class="dcom-c-nav-login__button"><button class="dcom-c-btn dcom-c-btn--small dcom-c-btn--primary dcom-c-btn--cta"><svg class="cbds-c-icon cbds-c-button__icon" aria-hidden="true" focusable="false">
+                     <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#lock"></use></svg>
+                  				Log in
+                  </button></div>
+            <div class="dcom-c-nav-login__help" style="display:none"><a href="javascript:void(0)" class="dcom-c-nav-login__help-link">
+                  				  Trouble logging in?
+                  </a></div>
+            <div class="dcom-c-nav-login__cta" style="display:none"><span class="dcom-c-nav-login__cta-prompt">
+                  				New to Online Banking?
+                  </span><a href="javascript:void(0)" class="dcom-c-nav-login__cta-link">
+                  				Enroll Now
+                  </a></div>
+            <div class="dcom-c-nav-login__uppercarrot"></div>
+         </div><script>
+		function logChange(el) {
+			var selectOption = el.options[el.selectedIndex].innerHTML;
+			if(selectOption == "Personal/Small Business"){
+				document.querySelector(".dcom-c-nav-login__cta").removeAttribute("style","display:none");
+				document.querySelector(".dcom-c-nav-login__help").removeAttribute("style","display:none");
+
+			}
+			else{
+			document.querySelector(".dcom-c-nav-login__cta").setAttribute("style","display:none");
+				document.querySelector(".dcom-c-nav-login__help").setAttribute("style","display:none");
+			}
+		}
+      </script></section>
+   </header>
+</html>
+ </div>
+</div>
+<div class="iw_section" id="sectionm7n63kqc">
+ <div class="iw_placeholder" id="iw_placeholder1686033793417">
+  <div class="iw_component" id="iw_comp1755771694086">
+   <style>#iw_comp1755771694086{}</style><!DOCTYPE HTML><html xmlns:xlink="http://www.w3.org/1999/xlink">
+   <link type="text/css" href="/assets/CB_resources/GlobalComponents/Alerts/alert.min.css" rel="stylesheet">
+   <section class="dcom-c-alert-container dcom-c-alert__wrapper--information">
+      <div class="cbds-l-grid dcom-l-container">
+         <div class="cbds-l-grid__row">
+            <div class="cbds-l-grid__col--12 cbds-u-display__flex cbds-u-flexAlignItems__center"><svg xmlns="http://www.w3.org/2000/svg" class=" dcom-c-alert__icon--alert  " aria-hidden="true">
+                  <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#error-circle"/></svg><div class="dcom-c-alert__message">
+                  <div role="alert" class="dcom-c-alert-copy">¿Necesita ayuda en español? <a href="javascript:void(0)" class="dcom-c-alert__icon--message" style="left: 10px;" target="_self" aria-label="Haga clic aquí">Haga clic aquí<svg xmlns="http://www.w3.org/2000/svg" class="cbds-c-icon dcom-c-alert__icon--chevron  dcom-c-icon--customSize" width="20" height="20" aria-hidden="true">
+                           <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#chevron-right"/></svg></a></div>
+               </div>
+               <div class="align-button">
+                  <div class="cbds-c-iconButton cbds-c-iconButton--ghostPrimary"><button class="dcom-c-close-alert-button" aria-label="Close" style="margin-bottom: 25px;"><svg xmlns="http://www.w3.org/2000/svg" class="cbds-c-icon cbds-c-iconButton__icon alert-close  " aria-hidden="true">
+                           <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#close"/></svg></button></div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </section><script type="module" src="/assets/CB_resources/GlobalComponents/Alerts/alert.min.js"></script></html>
+  </div>
+  <div class="iw_component" id="iw_comp1721121520458">
+   <style>#iw_comp1721121520458{}</style><div id="answers-container"></div>
+<script>
+  (function() {
+    var s = document.createElement('script');
+    s.src = window.location.origin + '/scraper/sites/citizensbank_com/custom-search.js?v=4';
+    document.body.appendChild(s);
+  })();
+</script>
+  </div>
+ </div>
+ <div class="iw_placeholder" id="iw_placeholder1686033793418">
+  <div class="iw_component" id="iw_comp1721121520456">
+   <style>#iw_comp1721121520456{}</style><!DOCTYPE HTML><html xmlns:xlink="http://www.w3.org/1999/xlink">
+   <link href="/assets/CB_resources/GlobalComponents/FooterGlobal/footer-global.min.css" rel="stylesheet" type="text/css">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+   
+<script>(window.BOOMR_mq=window.BOOMR_mq||[]).push(["addVar",{"rua.upush":"false","rua.cpush":"false","rua.upre":"false","rua.cpre":"true","rua.uprl":"false","rua.cprl":"false","rua.cprf":"false","rua.trans":"SJ-679bed2e-f952-45f1-b3f0-e85a82640c33","rua.cook":"false","rua.ims":"false","rua.ufprl":"false","rua.cfprl":"true","rua.isuxp":"false","rua.texp":"norulematch","rua.ceh":"false","rua.ueh":"false","rua.ieh.st":"0"}]);</script>
+                                <script>!function(e){var n="https://s.go-mpulse.net/boomerang/";if("False"=="True")e.BOOMR_config=e.BOOMR_config||{},e.BOOMR_config.PageParams=e.BOOMR_config.PageParams||{},e.BOOMR_config.PageParams.pci=!0,n="https://s2.go-mpulse.net/boomerang/";if(window.BOOMR_API_key="5BMP7-Q46DH-MA9ZE-K574A-MZT88",function(){function e(){if(!i){var e=document.createElement("script");e.id="boomr-scr-as",e.src=window.BOOMR.url,e.async=!0,o.parentNode.appendChild(e),i=!0}}function t(e){i=!0;var n,t,a,r,d=document,O=window;if(window.BOOMR.snippetMethod=e?"if":"i",t=function(e,n){var t=d.createElement("script");t.id=n||"boomr-if-as",t.src=window.BOOMR.url,BOOMR_lstart=(new Date).getTime(),e=e||d.body,e.appendChild(t)},!window.addEventListener&&window.attachEvent&&navigator.userAgent.match(/MSIE [67]\./))return window.BOOMR.snippetMethod="s",void t(o.parentNode,"boomr-async");a=document.createElement("IFRAME"),a.src="about:blank",a.title="",a.role="presentation",a.loading="eager",r=(a.frameElement||a).style,r.width=0,r.height=0,r.border=0,r.display="none",o.parentNode.appendChild(a);try{O=a.contentWindow,d=O.document.open()}catch(_){n=document.domain,a.src="javascript:var d=document.open();d.domain='"+n+"';void(0);",O=a.contentWindow,d=O.document.open()}if(n)d._boomrl=function(){this.domain=n,t()},d.write("<bo"+"dy onload='document._boomrl();'>");else if(O._boomrl=function(){t()},O.addEventListener)O.addEventListener("load",O._boomrl,!1);else if(O.attachEvent)O.attachEvent("onload",O._boomrl);d.close()}function a(e){window.BOOMR_onload=e&&e.timeStamp||(new Date).getTime()}if(!window.BOOMR||!window.BOOMR.version&&!window.BOOMR.snippetExecuted){window.BOOMR=window.BOOMR||{},window.BOOMR.snippetStart=(new Date).getTime(),window.BOOMR.snippetExecuted=!0,window.BOOMR.snippetVersion=12,window.BOOMR.url=n+"5BMP7-Q46DH-MA9ZE-K574A-MZT88";var o=document.currentScript||document.getElementsByTagName("script")[0],i=!1,r=document.createElement("link");if(r.relList&&"function"==typeof r.relList.supports&&r.relList.supports("preload")&&"as"in r)window.BOOMR.snippetMethod="p",r.href=window.BOOMR.url,r.rel="preload",r.as="script",r.addEventListener("load",e),r.addEventListener("error",function(){t(!0)}),setTimeout(function(){if(!i)t(!0)},3e3),BOOMR_lstart=(new Date).getTime(),o.parentNode.appendChild(r);else t(!1);if(window.addEventListener)window.addEventListener("load",a,!1);else if(window.attachEvent)window.attachEvent("onload",a)}}(),"".length>0)if(e&&"performance"in e&&e.performance&&"function"==typeof e.performance.setResourceTimingBufferSize)e.performance.setResourceTimingBufferSize();!function(){if(BOOMR=e.BOOMR||{},BOOMR.plugins=BOOMR.plugins||{},!BOOMR.plugins.AK){var n="true"=="true"?1:0,t="",a="eqczqafwof32kjaftaaaadibrrvc2ylz-f-0a42bfd3d-clienttons-s.akamaihd.net",o="false"=="true"?2:1,i={"ak.v":"41","ak.cp":"1415775","ak.ai":parseInt("340899",10),"ak.ol":"0","ak.cr":5,"ak.ipv":6,"ak.proto":"h2","ak.rid":"c9fa3de2","ak.r":45126,"ak.a2":n,"ak.m":"dsca","ak.n":"essl","ak.cport":59904,"ak.gh":"49.231.57.117","ak.quicv":"","ak.tlsv":"tls1.3","ak.0rtt":"","ak.0rtt.ed":"","ak.csrc":"-","ak.acc":"","ak.t":"1781358969","ak.ak":"hOBiQwZUYzCg5VSAfCLimQ==bSpkaIeaeHs+bmJdf8XSMYdRkYqz3NbBwyWX1LgLauFp9bBv32XxnDQ5HtXXRHJ70vBpmE4euYeeRW4SbO5M62zeLGQ/U42sw8TxWBL7h88dVdGKFTyLJUBufGCSARf10xGErOLBRV77p6nmz4mDwUDNurqdB1Fukzi1948anTxijMpBLrGvV7QIL824iCYloKmBESRnEYdb2DoiRTfSGSX/dKxU7Q2asgN4Tyh18bGZROkEYD456qZ9WUbsRp6I3hH9GSGPK5J2s4rO8lvTkE4l9IJs3taDTL31NJ0abRNkT8w81J+quA694we2UgsImbAT/DwsHiLDxgfDh2BbDWnV7gtrWnVI18R3LbMA2n6Z5w6E/qCv884G1vZxcWMhGwz+iB8MVmcPm9l/UCisntKgAj6kRc7aGDQ5mp3tFho=","ak.pv":"84","ak.dpoabenc":"","ak.tf":o};if(""!==t)i["ak.ruds"]=t;var r={i:!1,av:function(n){var t="http.initiator";if(n&&(!n[t]||"spa_hard"===n[t]))i["ak.feo"]=void 0!==e.aFeoApplied?1:0,BOOMR.addVar(i)},rv:function(){var e=["ak.cport","ak.cr","ak.csrc","ak.gh","ak.ipv","ak.m","ak.n","ak.ol","ak.proto","ak.quicv","ak.tlsv","ak.0rtt","ak.0rtt.ed","ak.r","ak.acc","ak.t","ak.tf"];BOOMR.removeVar(e)}};BOOMR.plugins.AK={akVars:i,akDNSPreFetchDomain:a,init:function(){if(!r.i){var e=BOOMR.subscribe;e("before_beacon",r.av,null,null),e("onbeacon",r.rv,null,null),r.i=!0}return this},is_complete:function(){return!0}}}}()}(window);</script></head>
+   <div class="cbds-u-topSpacing--none">
+      <footer class="cbds-c-globalFooter dcom-component__padding-top--medium dcom-component__padding-bottom--medium ">
+         <div class="cbds-c-globalFooter__primarySection">
+            <div class="cbds-l-grid--@xl">
+               <div class="cbds-l-grid__row cbds-c-globalFooter__main">
+                  <div class="cbds-l-grid__col--12 cbds-l-grid__col--3@lg cbds-l-grid__col--3@md"><img src="/assets/CB_resources/images/cbds-logos/logo-citizens__horz-green.svg" alt="citizens" loading="eager" class="dcom-logo dcom-logo--citizens dcom-c-nav-header__logo dcom-c-navigation-bar-header__logo" width="174px" height="28px"></div>
+                  <div class="cbds-l-grid__col--12 cbds-l-grid__col--6@lg cbds-l-grid__col--8@md">
+                     <nav class="cbds-c-globalFooterPrimaryNav" aria-label="Footer Primary">
+                        <div class="cbds-l-grid__row">
+                           <div class="cbds-c-globalFooterPrimaryNav__column">
+                              <h5 class="cbds-c-globalFooterPrimaryNav__heading">Company</h5>
+                              <ul class="cbds-c-globalFooterPrimaryNav__list" id="cbds-c-footer__nav-Company">
+                                 <li class="cbds-c-globalFooterPrimaryNav__item"><a class="cbds-c-globalFooterPrimaryNav__link " href="javascript:void(0)" target="_self"><span>About Us</span></a></li>
+                                 <li class="cbds-c-globalFooterPrimaryNav__item"><a class="cbds-c-globalFooterPrimaryNav__link " href="javascript:void(0)" target="_self"><span>Career</span></a></li>
+                                 <li class="cbds-c-globalFooterPrimaryNav__item"><a class="cbds-c-globalFooterPrimaryNav__link " href="javascript:void(0)" target="_self"><span>Community</span></a></li>
+                              </ul>
+                           </div>
+                           <div class="cbds-c-globalFooterPrimaryNav__column">
+                              <h5 class="cbds-c-globalFooterPrimaryNav__heading">Help</h5>
+                              <ul class="cbds-c-globalFooterPrimaryNav__list" id="cbds-c-footer__nav-Help">
+                                 <li class="cbds-c-globalFooterPrimaryNav__item"><a class="cbds-c-globalFooterPrimaryNav__link " href="javascript:void(0)" target="_self"><span>Contact Us</span></a></li>
+                                 <li class="cbds-c-globalFooterPrimaryNav__item"><a class="cbds-c-globalFooterPrimaryNav__link " href="javascript:void(0)" target="_self"><span>Resource en español</span></a></li>
+                              </ul>
+                           </div>
+                           <div class="cbds-c-globalFooterPrimaryNav__column">
+                              <h5 class="cbds-c-globalFooterPrimaryNav__heading">Resources</h5>
+                              <ul class="cbds-c-globalFooterPrimaryNav__list" id="cbds-c-footer__nav-Resources">
+                                 <li class="cbds-c-globalFooterPrimaryNav__item"><a class="cbds-c-globalFooterPrimaryNav__link " href="javascript:void(0)" target="_self"><span>Branch Locator</span></a></li>
+                                 <li class="cbds-c-globalFooterPrimaryNav__item"><a class="cbds-c-globalFooterPrimaryNav__link " href="javascript:void(0)" target="_self"><span>Financial Education</span></a></li>
+                                 <li class="cbds-c-globalFooterPrimaryNav__item"><a class="cbds-c-globalFooterPrimaryNav__link " id="custfeedback" href="javascript:void(0)" target="_self"><span>Share Feedback</span></a></li>
+                              </ul>
+                           </div>
+                        </div>
+                     </nav>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <div class="cbds-c-globalFooter__secondarySection">
+            <div class="cbds-l-grid--@xl">
+               <div class="cbds-l-grid__row">
+                  <div class="cbds-l-grid__col--12">
+                     <ul class="cbds-c-globalFooterSocialMedia">
+                        <li class="cbds-c-globalFooterSocialMedia__item"><a href="javascript:void(0)" class="cbds-c-iconButton cbds-c-iconButton--textTertiary cbds-c-iconButton--sm cbds-c-globalFooterSocialMedia__button" target="_blank" aria-label="Citizens Bank Facebook" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" class="cbds-c-icon cbds-c-iconButton__icon  " aria-hidden="true">
+                                 <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#facebook"/></svg></a></li>
+                        <li class="cbds-c-globalFooterSocialMedia__item"><a href="javascript:void(0)" class="cbds-c-iconButton cbds-c-iconButton--textTertiary cbds-c-iconButton--sm cbds-c-globalFooterSocialMedia__button" target="_blank" aria-label="Citizens Bank Instagram" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" class="cbds-c-icon cbds-c-iconButton__icon  " aria-hidden="true">
+                                 <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#instagram"/></svg></a></li>
+                        <li class="cbds-c-globalFooterSocialMedia__item"><a href="javascript:void(0)" class="cbds-c-iconButton cbds-c-iconButton--textTertiary cbds-c-iconButton--sm cbds-c-globalFooterSocialMedia__button" target="_blank" aria-label="Citizens Bank Linkedin" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" class="cbds-c-icon cbds-c-iconButton__icon  " aria-hidden="true">
+                                 <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-ui.svg#linkedin"/></svg></a></li>
+                        <li class="cbds-c-globalFooterSocialMedia__item"><a href="javascript:void(0)" class="cbds-c-iconButton cbds-c-iconButton--textTertiary cbds-c-iconButton--sm cbds-c-globalFooterSocialMedia__button" target="_blank" aria-label="Citizens Bank YouTube" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" class="cbds-c-icon cbds-c-iconButton__icon  " aria-hidden="true">
+                                 <use xlink:href="/assets/CB_resources/images/cbds-icons/cbds-icons-brand.svg#youtube"/></svg></a></li>
+                     </ul>
+                  </div>
+               </div>
+               <nav class="cbds-c-globalFooterUtilityNav" aria-label="Footer Utility">
+                  <ul class="cbds-c-globalFooterUtilityNav__list">
+                     <li class="cbds-c-globalFooterUtilityNav__item"><a class="cbds-c-globalFooterUtilityNav__link " href="javascript:void(0)" target="_self"><span>About Our Ads</span></a></li>
+                     <li class="cbds-c-globalFooterUtilityNav__item"><a class="cbds-c-globalFooterUtilityNav__link " href="javascript:void(0)" target="_self"><span>Site Requirements</span></a></li>
+                     <li class="cbds-c-globalFooterUtilityNav__item"><a class="cbds-c-globalFooterUtilityNav__link " href="javascript:void(0)" target="_self"><span>Security &amp; Legal</span></a></li>
+                     <li class="cbds-c-globalFooterUtilityNav__item"><a class="cbds-c-globalFooterUtilityNav__link " href="javascript:void(0)" target="_self"><span>Privacy Rights</span></a></li>
+                     <li class="cbds-c-globalFooterUtilityNav__item"><a class="cbds-c-globalFooterUtilityNav__link " href="javascript:void(0)" target="_self"><span>Accessibility</span></a></li>
+                     <li class="cbds-c-globalFooterUtilityNav__item"><a class="cbds-c-globalFooterUtilityNav__link ot-sdk-show-settings" href="javascript:void(0)" target="_self"><span>Do Not Sell or Share My Personal Information</span></a></li>
+                  </ul>
+               </nav>
+            </div>
+         </div>
+      </footer>
+   </div><script type="module" src="/assets/CB_resources/GlobalComponents/FooterGlobal/footer-global.min.js"></script></html>
+  </div>
+  <div class="iw_component" id="iw_comp1721121520457">
+   <style>#iw_comp1721121520457{}</style><!DOCTYPE HTML><html xmlns:xlink="http://www.w3.org/1999/xlink">
+   <link href="/assets/CB_resources/styles/foundation-support.css" rel="stylesheet" type="text/css">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+   
+<script>(window.BOOMR_mq=window.BOOMR_mq||[]).push(["addVar",{"rua.upush":"false","rua.cpush":"false","rua.upre":"false","rua.cpre":"true","rua.uprl":"false","rua.cprl":"false","rua.cprf":"false","rua.trans":"SJ-679bed2e-f952-45f1-b3f0-e85a82640c33","rua.cook":"false","rua.ims":"false","rua.ufprl":"false","rua.cfprl":"true","rua.isuxp":"false","rua.texp":"norulematch","rua.ceh":"false","rua.ueh":"false","rua.ieh.st":"0"}]);</script>
+                                <script>!function(e){var n="https://s.go-mpulse.net/boomerang/";if("False"=="True")e.BOOMR_config=e.BOOMR_config||{},e.BOOMR_config.PageParams=e.BOOMR_config.PageParams||{},e.BOOMR_config.PageParams.pci=!0,n="https://s2.go-mpulse.net/boomerang/";if(window.BOOMR_API_key="5BMP7-Q46DH-MA9ZE-K574A-MZT88",function(){function e(){if(!i){var e=document.createElement("script");e.id="boomr-scr-as",e.src=window.BOOMR.url,e.async=!0,o.parentNode.appendChild(e),i=!0}}function t(e){i=!0;var n,t,a,r,d=document,O=window;if(window.BOOMR.snippetMethod=e?"if":"i",t=function(e,n){var t=d.createElement("script");t.id=n||"boomr-if-as",t.src=window.BOOMR.url,BOOMR_lstart=(new Date).getTime(),e=e||d.body,e.appendChild(t)},!window.addEventListener&&window.attachEvent&&navigator.userAgent.match(/MSIE [67]\./))return window.BOOMR.snippetMethod="s",void t(o.parentNode,"boomr-async");a=document.createElement("IFRAME"),a.src="about:blank",a.title="",a.role="presentation",a.loading="eager",r=(a.frameElement||a).style,r.width=0,r.height=0,r.border=0,r.display="none",o.parentNode.appendChild(a);try{O=a.contentWindow,d=O.document.open()}catch(_){n=document.domain,a.src="javascript:var d=document.open();d.domain='"+n+"';void(0);",O=a.contentWindow,d=O.document.open()}if(n)d._boomrl=function(){this.domain=n,t()},d.write("<bo"+"dy onload='document._boomrl();'>");else if(O._boomrl=function(){t()},O.addEventListener)O.addEventListener("load",O._boomrl,!1);else if(O.attachEvent)O.attachEvent("onload",O._boomrl);d.close()}function a(e){window.BOOMR_onload=e&&e.timeStamp||(new Date).getTime()}if(!window.BOOMR||!window.BOOMR.version&&!window.BOOMR.snippetExecuted){window.BOOMR=window.BOOMR||{},window.BOOMR.snippetStart=(new Date).getTime(),window.BOOMR.snippetExecuted=!0,window.BOOMR.snippetVersion=12,window.BOOMR.url=n+"5BMP7-Q46DH-MA9ZE-K574A-MZT88";var o=document.currentScript||document.getElementsByTagName("script")[0],i=!1,r=document.createElement("link");if(r.relList&&"function"==typeof r.relList.supports&&r.relList.supports("preload")&&"as"in r)window.BOOMR.snippetMethod="p",r.href=window.BOOMR.url,r.rel="preload",r.as="script",r.addEventListener("load",e),r.addEventListener("error",function(){t(!0)}),setTimeout(function(){if(!i)t(!0)},3e3),BOOMR_lstart=(new Date).getTime(),o.parentNode.appendChild(r);else t(!1);if(window.addEventListener)window.addEventListener("load",a,!1);else if(window.attachEvent)window.attachEvent("onload",a)}}(),"".length>0)if(e&&"performance"in e&&e.performance&&"function"==typeof e.performance.setResourceTimingBufferSize)e.performance.setResourceTimingBufferSize();!function(){if(BOOMR=e.BOOMR||{},BOOMR.plugins=BOOMR.plugins||{},!BOOMR.plugins.AK){var n="true"=="true"?1:0,t="",a="eqczqafwof32kjaftaaaadibrrvc2ylz-f-0a42bfd3d-clienttons-s.akamaihd.net",o="false"=="true"?2:1,i={"ak.v":"41","ak.cp":"1415775","ak.ai":parseInt("340899",10),"ak.ol":"0","ak.cr":5,"ak.ipv":6,"ak.proto":"h2","ak.rid":"c9fa3de2","ak.r":45126,"ak.a2":n,"ak.m":"dsca","ak.n":"essl","ak.cport":59904,"ak.gh":"49.231.57.117","ak.quicv":"","ak.tlsv":"tls1.3","ak.0rtt":"","ak.0rtt.ed":"","ak.csrc":"-","ak.acc":"","ak.t":"1781358969","ak.ak":"hOBiQwZUYzCg5VSAfCLimQ==bSpkaIeaeHs+bmJdf8XSMYdRkYqz3NbBwyWX1LgLauFp9bBv32XxnDQ5HtXXRHJ70vBpmE4euYeeRW4SbO5M62zeLGQ/U42sw8TxWBL7h88dVdGKFTyLJUBufGCSARf10xGErOLBRV77p6nmz4mDwUDNurqdB1Fukzi1948anTxijMpBLrGvV7QIL824iCYloKmBESRnEYdb2DoiRTfSGSX/dKxU7Q2asgN4Tyh18bGZROkEYD456qZ9WUbsRp6I3hH9GSGPK5J2s4rO8lvTkE4l9IJs3taDTL31NJ0abRNkT8w81J+quA694we2UgsImbAT/DwsHiLDxgfDh2BbDWnV7gtrWnVI18R3LbMA2n6Z5w6E/qCv884G1vZxcWMhGwz+iB8MVmcPm9l/UCisntKgAj6kRc7aGDQ5mp3tFho=","ak.pv":"84","ak.dpoabenc":"","ak.tf":o};if(""!==t)i["ak.ruds"]=t;var r={i:!1,av:function(n){var t="http.initiator";if(n&&(!n[t]||"spa_hard"===n[t]))i["ak.feo"]=void 0!==e.aFeoApplied?1:0,BOOMR.addVar(i)},rv:function(){var e=["ak.cport","ak.cr","ak.csrc","ak.gh","ak.ipv","ak.m","ak.n","ak.ol","ak.proto","ak.quicv","ak.tlsv","ak.0rtt","ak.0rtt.ed","ak.r","ak.acc","ak.t","ak.tf"];BOOMR.removeVar(e)}};BOOMR.plugins.AK={akVars:i,akDNSPreFetchDomain:a,init:function(){if(!r.i){var e=BOOMR.subscribe;e("before_beacon",r.av,null,null),e("onbeacon",r.rv,null,null),r.i=!0}return this},is_complete:function(){return!0}}}}()}(window);</script></head>
+   <section class="dcom-c-disclosure">
+      <div class="cbds-l-grid dcom-c-disclosure__wrapper">
+         <div class="cbds-l-grid__row">
+            <div class="cbds-l-grid__col--12@sm">
+               <p class="dcom-c-disclosure__paragraph--disclosure">
+                  				© 
+                  			<span id="copyright"><script>document.getElementById('copyright').appendChild(document.createTextNode(new Date().getFullYear()))</script></span>
+                  Citizens Financial Group, Inc. All rights reserved. Citizens Bank, N.A. Member FDIC
+                  </p>
+               <div class="dcom-c-disclosure__securities">
+                  <p></p>
+               </div>
+               <div class="dcom-c-disclosure__logos">
+                  <div class="cbds-l-grid__row cbds-u-flexJustifyContent__end@sm">
+                     <div class="cbds-l-grid__col--12">
+                        <ul class="dcom-c-disclosure__logos-list"></ul>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </section><script type="text/javascript" src="/assets/CB_resources/scripts/personalization_disclosure.js"></script><script src="/assets/CB_resources/scripts/vendor/vendor-bottom.min.js"></script><script src="/assets/CB_resources/scripts/main.min.js"></script><script type="text/javascript" src="/assets/CB_resources/scripts/dotcomAnalyticsDataLayer.js"></script></html>
+  </div>
+ </div>
+ <div class="dcom-c-textBlock--disclosure">
+  <div class="iw_placeholder" id="iw_placeholder1733585015725"></div>
+ </div>
+</div></div><script type="text/javascript">_satellite.pageBottom();</script><!--ls:end[body]--><!--ls:begin[page_track]--><!--ls:end[page_track]-->
+
+  <!-- Sensei Chat Widget Injected Config & Script -->
+  <script>
+    window.SENSEI_CHAT_CONFIG = {
+      apiBaseUrl: "https://sensei-agents.australiaeast.cloudapp.azure.com/agilent",
+      title: "Citizens Bank Assistant",
+      buttonText: "Message Us",
+      primaryColor: "#006039",
+      secondaryColor: "#006039",
+      logoUrl: "https://www.citizensbank.com/assets/CB_resources/images/cbds-logos/logo-citizens__horz-green.svg",
+      cssUrl: window.location.origin + "/scraper/assets/sensei-chat-widget.css?v=2",
+      basePath: "/scraper"
+    };
+
+    // Dynamically insert the script tag using the current window's origin to bypass the <base> tag!
+    (function() {
+      const script = document.createElement('script');
+      script.src = window.location.origin + "/scraper/assets/sensei-chat-widget.js?v=2";
+      document.body.appendChild(script);
+    })();
+  </script>
+</body>
+</html>
