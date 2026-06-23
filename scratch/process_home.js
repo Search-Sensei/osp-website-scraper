@@ -57,7 +57,7 @@ const chatWidgetCode = `
       buttonText: "Message Us",
       primaryColor: "#aa801a",
       secondaryColor: "#aa801a",
-      logoUrl: "/scraper/sites/communitysavings_bank/fonts/csb-iowa-logo.svg",
+      logoUrl: "/scraper/sites/communitysavings_bank/fonts/small2-csb-iowa-logo.svg",
       cssUrl: "/scraper/assets/sensei-chat-widget.css?v=2",
       basePath: "/scraper"
     };
