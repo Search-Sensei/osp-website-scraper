@@ -48,6 +48,8 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [results, setResults] = useState<SearchItem[]>([]);
+  const [answer, setAnswer] = useState<any>(null);
+  const [relatedQuestions, setRelatedQuestions] = useState<string[]>([]);
   const [featuredContent, setFeaturedContent] = useState<any[]>([]);
   const [navigators, setNavigators] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,6 +65,8 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
   const performSearch = useCallback(async (searchQuery: string, category: string, pageNum: number = 1) => {
     if (!searchQuery.trim()) {
       setResults([]);
+      setAnswer(null);
+      setRelatedQuestions([]);
       setNavigators([]);
       setHasSearched(false);
       setResultsCount(0);
@@ -87,6 +91,12 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
       const items = data.results || (data.body && data.body.results) || [];
       const navs = data.navigators || (data.body && data.body.navigators) || [];
       const featured = data.featured || (data.body && data.body.featured) || [];
+      const relatedQs = data.relatedQuestions || (data.body && data.body.relatedQuestions) || [];
+      
+      let ans = data.answer || data.generativeAnswer || (data.body && (data.body.answer || data.body.generativeAnswer)) || null;
+      if (!ans && data.answers && data.answers.length > 0) {
+        ans = data.answers[0].highlights || data.answers[0].text;
+      }
 
       let apiTotalResults = data.resultsCount ?? data.body?.resultsCount ?? data.body?.searchDefinition?.totalResults;
       if (apiTotalResults === undefined || apiTotalResults === 0) {
@@ -108,6 +118,8 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
       }
 
       setResults(paginatedItems);
+      setAnswer(ans);
+      setRelatedQuestions(relatedQs);
       setNavigators(navs);
       setFeaturedContent(featured);
       setResultsCount(totalResults);
@@ -203,6 +215,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
 
   return (
     <div style={containerStyle} className="sensei-root-wrapper w-full p-4 md:p-8 text-slate-800 bg-[#f3f4f6] min-h-[50vh]">
+
       {hasSearched && (
         <div className="mb-8">
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-6">
@@ -234,6 +247,41 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                 </button>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Answer Component */}
+      {!error && hasSearched && answer && !loading && (
+        <div className="relative overflow-hidden bg-white rounded-2xl p-6 mb-8 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-indigo-100 hover:shadow-[0_8px_30px_rgb(99,102,241,0.12)] transition-all duration-300 group">
+          {/* Subtle gradient background layer */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/80 pointer-events-none"></div>
+          
+          {/* Top glowing accent line */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <svg className="w-6 h-6 text-indigo-600 animate-[pulse_3s_ease-in-out_infinite]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                AI Answer
+              </h3>
+            </div>
+            
+            <div className="text-slate-800 leading-relaxed text-base" dangerouslySetInnerHTML={{ __html: typeof answer === 'string' ? answer : (answer.text || answer.content || '') }} />
+            
+            {answer.references && answer.references.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-indigo-100/60 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Sources:</span>
+                {answer.references.map((ref: any, idx: number) => (
+                  <a key={idx} href={ref.url || '#'} className="inline-flex items-center px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 text-sm font-semibold rounded-full hover:bg-indigo-100 hover:border-indigo-200 transition-colors">
+                    {ref.title || `[${idx + 1}]`}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -328,7 +376,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                           : "");
 
                       return (
-                        <div key={`top-${index}`} className="bg-white rounded-xl border shadow-sm p-6 flex flex-col h-full hover:shadow-md transition-shadow" style={{ borderColor: borderColor }}>
+                        <div key={`top-${index}`} className="search-item bg-white rounded-xl border shadow-sm p-6 flex flex-col h-full hover:shadow-md transition-shadow" style={{ borderColor: borderColor }}>
                           <h3 className="text-lg font-bold text-slate-900 mb-2 leading-snug">{item.title}</h3>
                           <div className="mb-3">
                             <span className="inline-block px-3 py-1 bg-slate-100 text-slate-800 text-xs font-semibold rounded-full">
@@ -360,7 +408,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
                             : "");
 
                         return (
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" key={`list-${index}`} className="block p-5 hover:bg-slate-50 transition-colors group">
+                          <a href={item.url} target="_blank" rel="noopener noreferrer" key={`list-${index}`} className="search-item block p-5 hover:bg-slate-50 transition-colors group">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                               <div className="flex-1">
                                 <h4 className="text-base font-bold text-slate-900 mb-1 group-hover:underline">{item.title}</h4>
@@ -381,6 +429,32 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ config }) => {
               );
             })()
           )}
+        </div>
+      )}
+
+      {/* People Also Asking About Component */}
+      {!error && hasSearched && relatedQuestions.length > 0 && !loading && (
+        <div className="mt-8 mb-6 px-2 w-full md:w-[70%]">
+          <h3 className="text-xl font-bold text-black mb-4">
+            People also asking about...
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {relatedQuestions.map((q, idx) => (
+              <button 
+                key={idx} 
+                className="flex items-center justify-between py-3 px-5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-left"
+              >
+                <span 
+                  className="text-slate-900 text-[15px] pr-4 [&>b]:font-bold"
+                  dangerouslySetInnerHTML={{ __html: q }} 
+                />
+                <svg className="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

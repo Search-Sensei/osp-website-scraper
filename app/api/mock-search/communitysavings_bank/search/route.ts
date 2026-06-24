@@ -107,6 +107,53 @@ export async function GET(request: Request) {
     // Pass the category to let the backend API handle the filtering
     const data = await searchOspApi(query, accessToken, page, pageSize, category);
 
+    // Clean up junk text from search results for this site
+    if (data && data.results) {
+      data.results = data.results.map((item: any) => {
+        const cleanText = (text: string) => {
+          if (!text) return text;
+          let cleaned = text.replace(/^Answer:\s*/i, '');
+          cleaned = cleaned.replace(/Skip to login.*?\.\.\.\s*/gi, '');
+          cleaned = cleaned.replace(/Skip to login Skip to main content.*?(?:\.\.\.|\n|$)/gi, '');
+          cleaned = cleaned.replace(/\*\*/g, '');
+          cleaned = cleaned.replace(/\[Reference\]/gi, '');
+          return cleaned.trim();
+        };
+
+        if (item.summary) item.summary = cleanText(item.summary);
+        if (item.body) item.body = cleanText(item.body);
+        return item;
+      });
+    }
+
+    // Mock a generative answer for the UI testing using the new 'answers' structure
+    if (data && query.toLowerCase().includes('mock')) {
+      if (!data.answers || data.answers.length === 0) {
+        data.answers = [
+          {
+            text: "Skip to login   Skip to main content   Personal   Life Moments   Home and property guides   Buying your first home – the different stages   How to go from renter to home buyer   How to go from renter to home buyer   Make the leap from renting to buyi... Step 4: Find your home  With a pre-approval handy, it’s easy to start the house hunting process.",
+            highlights: "Skip to login   Skip to main content   Personal   Life Moments   Home and property guides   Buying your first home – the different stages   How to go from renter to home buyer   How to go from renter to home buyer   Make the leap from renting to buyi... <b>Step </b>4:<b> Find your home  With a pre-approval handy, it’s easy to start the house hunting process.</b>",
+            score: "0.9169999957084656"
+          }
+        ];
+      }
+
+      if (!data.relatedQuestions || data.relatedQuestions.length === 0) {
+        data.relatedQuestions = [
+          "GOG <b>download</b>",
+          "GOG <b>com GALAXY</b>",
+          "Gog <b>game to</b>",
+          "Gog <b>login</b>",
+          "GOG <b>Galaxy คือ</b>",
+          "GOG <b>app</b>",
+          "Gog <b>launcher</b>",
+          "GOG <b>เกมฟรี</b>"
+        ];
+      }
+
+      data.resultsCount = 100;
+    }
+
     return NextResponse.json(data, {
       headers: {
         'Access-Control-Allow-Origin': '*'
