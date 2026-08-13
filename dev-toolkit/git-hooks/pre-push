@@ -1,0 +1,18 @@
+#!/bin/bash
+# Pre-push hook to ensure Next.js app builds successfully before pushing code.
+
+echo "==> Running pre-push build checks..."
+
+while read local_ref local_sha remote_ref remote_sha
+do
+  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+    # Branch deletion, skip
+    continue
+  fi
+
+  echo "==> Running local Next.js build..."
+  npm run build || { echo "❌ osp-website-scraper build failed! Please fix errors before pushing."; exit 1; }
+done
+
+echo "✅ All local build checks passed!"
+exit 0
